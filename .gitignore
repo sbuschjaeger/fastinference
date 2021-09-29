@@ -8,3 +8,4 @@ docs/xml
 docs/make.bat
 /*.egg-info
 *.json
+__pycache__
