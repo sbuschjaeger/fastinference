@@ -5,7 +5,6 @@ on:
     branches: [master]
 
 jobs:
-
   tests:
     runs-on: ubuntu-latest
     container: pytorchlightning/pytorch_lightning
@@ -19,81 +18,88 @@ jobs:
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
-            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation
         env:
-          type: qda
+          type: discriminant
           nclasses: 5
           nfeatures: 10
           difficulty: 0.5
           nexamples: 10000
-          outpath: /tmp/fastinference/qda/single/
+          outpath: /tmp/fastinference/
           modelname: DiscriminantAnalysis
           nestimators: 1
+          implementation: cpp
       - name: Test bagged QDA
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
-            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation --baseimplementation=cpp
         env:
-          type: qda
+          type: discriminant
           nclasses: 5
           nfeatures: 10
           difficulty: 0.5
           nexamples: 10000
-          outpath: /tmp/fastinference/qda/bagging/
+          outpath: /tmp/fastinference/
           modelname: BaggingDiscriminantAnalysis
           nestimators: 20
+          implementation: cpp
 
       - name: Test DT inference
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
-            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation
         env:
-          type: trees
+          type: tree
           nestimators: 1
           maxdepth: 5
           nclasses: 5
           nfeatures: 10
           difficulty: 0.5
           nexamples: 10000
-          outpath: /tmp/fastinference/trees/RF/
+          outpath: /tmp/fastinference/
           modelname: DecisionTreeClassifier
-          implementationtype: ifels
+          implementation: cpp.ifelse
+
       - name: Test RF inference
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
-            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation --baseimplementation=$baseimplementation
         env:
-          type: qda
+          type: tree
           nclasses: 5
           nfeatures: 10
           difficulty: 0.5
           nexamples: 10000
-          outpath: /tmp/fastinference/qda/bagging/
-          modelname: BaggingDiscriminantAnalysis
+          outpath: /tmp/fastinference/
+          modelname: RandomForestClassifier
           nestimators: 20
+          implementation: cpp
+          baseimplementation: cpp.ifelse
 
       - name: Test linear inference
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
-            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation
         env:
           type: linear
           nclasses: 5
           nfeatures: 10
           difficulty: 0.5
           nexamples: 10000
-          outpath: /tmp/fastinference/linear/single/
+          outpath: /tmp/fastinference/
           modelname: RidgeClassifier
           nestimators: 1
+          implementation: cpp
+
       - name: Test bagged linear inference
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
-            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation --baseimplementation=$baseimplementation
         env:
           type: linear
           nclasses: 5
@@ -103,17 +109,35 @@ jobs:
           outpath: /tmp/fastinference/linear/bagging/
           modelname: BaggingRidgeClassifier
           nestimators: 20
+          implementation: cpp
+          baseimplementation: cpp
 
-      - name: Test nn inference
+      - name: Test MLP inference
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
-            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation
         env:
-          type: nn
+          type: mlp
           nclasses: 5
           nfeatures: 10
           difficulty: 0.5
           nexamples: 10000
-          outpath: /tmp/fastinference/nn/cpp/float/
+          outpath: /tmp/fastinference/
+          implementation: cpp.NHWC
           modelname: SimpleMLP
+      
+      - name: Test CNN inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation
+        env:
+          type: cnn
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/
+          implementation: cpp.NHWC
+          modelname: SimpleCNN
