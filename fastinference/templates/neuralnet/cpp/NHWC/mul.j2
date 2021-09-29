@@ -1,0 +1,11 @@
+{#
+ # Mult / Scale layer
+ #}
+
+{% if scale.shape == (1,) %}
+    for (int i = 0; i < {{ output_shape[1] }}; i++) {
+        layer_{{ layer_id }}_output[i] = {{scale[0]}} * layer_{{ layer_id - 1 }}_output[i];
+    }
+{% else %}
+ // TODO
+{% endif %}

@@ -1,0 +1,16 @@
+{{ includes }}
+
+{% for m in model.models %}
+#include "{{m.name}}.h"
+{% endfor %}
+
+namespace {{namespace}} {
+{{ code_static }}
+
+void predict_{{model.name}}( {{feature_type}} const * const x, {{label_type}} * pred){
+{% for base in model.models %}
+    predict_{{base.name}}(x, pred);
+{% endfor %}
+}
+
+}

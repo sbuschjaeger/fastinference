@@ -1,0 +1,12 @@
+{#
+ # Transpose
+ #}
+
+// Layer {{ layer_id }}: Transpose
+for (int c = 0; c < {{ input_shape[1] }}; c++) {
+  for (int h = 0; h < {{ input_shape[2] }}; h++) {
+    for (int w = 0; w < {{ input_shape[3] }}; w++) {
+      layer_{{ layer_id }}_output[{{ ['c', 'h', 'w'][perm[0]] }}][{{ ['c', 'h', 'w'][perm[1]] }}][{{ ['c', 'h', 'w'][perm[2]] }}] = layer_{{ layer_id - 1 }}_output[c][h][w];
+    }
+  }
+}

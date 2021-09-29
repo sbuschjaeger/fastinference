@@ -1,0 +1,38 @@
+namespace {{namespace}} {
+
+{{ code_static }}
+
+void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
+{% set num_features = model.means[0] | length  %}
+    {{label_type}} x2[{{num_features}}] = {0};
+    {{label_type}} norm2 = 0;
+    {{label_type}} tmp[{{num_features}}] = {0};
+{% for i in range(model.num_classes) %}
+	{% for j in range(num_features) %}
+    x2[{{j}}] = 0;
+	{% endfor %}
+
+	{% for j in range(num_features) %}
+    tmp[{{j}}] = x[{{j}}] - {{model.means[i][j]}};
+	{% endfor %}	
+
+	{% for j in range(num_features) %}
+		{% for k in range(num_features) %}
+    x2[{{j}}] += tmp[{{k}}]*{{model.product[i][k][j]}};
+		{% endfor %}
+	{% endfor %}
+
+    norm2 = 0;
+	{% for j in range(num_features) %}
+    norm2 += x2[{{j}}]*x2[{{j}}];
+	{% endfor %}
+	
+	{% if weight != 1.0 %}
+    pred[{{i}}] += -0.5 * {{weight}} * (norm2+ {{model.scale_log_sums[i]}}) + {{model.log_priors[i]}};
+	{% else %}
+    pred[{{i}}] += -0.5* (norm2 + {{model.scale_log_sums[i]}}) + {{model.log_priors[i]}};
+	{% endif %}
+{% endfor %}
+}
+
+}

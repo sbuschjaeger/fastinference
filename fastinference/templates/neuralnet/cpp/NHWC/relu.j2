@@ -1,0 +1,18 @@
+{#
+ # Rectified Linear Unit
+ #}
+
+// Layer {{ layer_id }}: Relu
+{% if output_shape|length > 2 %}
+for (int h = 0; h < {{ output_shape[2] }}; h++) {
+  for (int w = 0; w < {{ output_shape[3] }}; w++) {
+    for (int c = 0; c < {{ output_shape[1] }}; c++) {
+      layer_{{ layer_id }}_output[h][w][c] = layer_{{ layer_id - 1 }}_output[h][w][c] >= 0 ? layer_{{ layer_id - 1 }}_output[h][w][c] : 0;
+    }
+  }
+}
+{% else %}
+for (int d = 0; d < {{ output_shape[1] }}; d++) {
+  layer_{{ layer_id }}_output[d] = layer_{{ layer_id - 1 }}_output[d] >= 0 ? layer_{{ layer_id - 1 }}_output[d] : 0;
+}
+{% endif %}

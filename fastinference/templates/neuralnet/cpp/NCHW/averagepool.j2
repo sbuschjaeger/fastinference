@@ -1,0 +1,26 @@
+{#
+ # Average Pooling
+ #}
+
+// Layer {{ layer_id }}: AveragePool
+for (int c = 0; c < {{ output_shape[1] }}; c++) {
+  for (int h = 0; h < {{ output_shape[2] }}; h++) {
+    for (int w = 0; w < {{ output_shape[3] }}; w++) {
+      {%- set count = [0] -%}
+      float sum = 0;
+      for (int kH = 0; kH < {{ kernel_shape[0] }}; kH++) {
+        int iH = h * {{ strides[0] }} + kH - {{ pads[0] }};
+        if (iH >= 0 && iH < {{ input_shape[2] }}) {
+          for (int kW = 0; kW < {{ kernel_shape[1] }}; kW++) {
+            int iW = w * {{ strides[1] }} + kW - {{ pads[1] }};
+            if (iW >= 0 && iW < {{ input_shape[3] }}) {
+              {%- set _ = count.append(count.pop() + 1) %}
+              sum += layer_{{ layer_id - 1 }}_output[c][iH][iW];
+            }
+          }
+        }
+      }
+      layer{{ net_id }}_{{ layer_id }}_output[c][h][w] = sum / {% if count_include_pad %}{{ kernel_shape[0] * kernel_shape[1] }}{% else %}{{ count }}{% endif %};
+    }
+  }
+}

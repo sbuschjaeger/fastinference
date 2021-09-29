@@ -1,0 +1,12 @@
+{#
+ # General Matrix Multiplication
+ #}
+
+// Layer {{ layer_id }}: Gemm
+for (int d = 0; d < {{ output_size }}; d++) {
+  {{ output_type }} sum = 0;
+  for (int i = 0; i < {{ input_size }}; i++) {
+    sum += layer_{{ layer_id }}_weight[d][i] * layer_{{ layer_id - 1 }}_output[i];
+  }
+  layer_{{ layer_id }}_output[d] = sum + layer_{{ layer_id }}_bias[d];
+}

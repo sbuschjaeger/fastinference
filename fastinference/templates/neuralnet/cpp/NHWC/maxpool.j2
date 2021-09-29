@@ -1,0 +1,42 @@
+{#
+ # Maximum Pooling
+ #}
+
+// Layer {{ layer_id }}: MaxPool
+{% if pads == [0, 0, 0, 0] %}
+for (int h = 0; h < {{ output_shape[2] }}; h++) {
+  for (int w = 0; w < {{ output_shape[3] }}; w++) {
+    for (int c = 0; c < {{ output_shape[1] }}; c++) {
+      layer_{{ layer_id }}_output[h][w][c] = std::numeric_limits<{{ output_type }}>::lowest();
+    }
+    for (int kH = 0; kH < {{ kernel_shape[0] }}; kH++) {
+      for (int kW = 0; kW < {{ kernel_shape[1] }}; kW++) {
+        for (int c = 0; c < {{ output_shape[1] }}; c++) {
+          layer_{{ layer_id }}_output[h][w][c] = std::max(layer_{{ layer_id - 1 }}_output[h * {{ strides[0] }} + kH][w * {{ strides[1] }} + kW][c], layer_{{ layer_id }}_output[h][w][c]);
+        }
+      }
+    }
+  }
+}
+{% else %}
+for (int h = 0; h < {{ output_shape[2] }}; h++) {
+  for (int w = 0; w < {{ output_shape[3] }}; w++) {
+    for (int c = 0; c < {{ output_shape[1] }}; c++) {
+      layer_{{ layer_id }}_output[h][w][c] = std::numeric_limits<{{ output_type }}>::lowest();
+    }
+    for (int kH = 0; kH < {{ kernel_shape[0] }}; kH++) {
+      int iH = h * {{ strides[0] }} + kH - {{ pads[0] }};
+      if (iH >= 0 && iH < {{ input_shape[2] }}) {
+        for (int kW = 0; kW < {{ kernel_shape[1] }}; kW++) {
+          int iW = w * {{ strides[1] }} + kW - {{ pads[1] }};
+          if (iW >= 0 && iW < {{ input_shape[3] }}) {
+            for (int c = 0; c < {{ output_shape[1] }}; c++) {
+              layer_{{ layer_id }}_output[h][w][c] = std::max(layer_{{ layer_id - 1 }}_output[iH][iW][c], layer_{{ layer_id }}_output[h][w][c]);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+{% endif %}

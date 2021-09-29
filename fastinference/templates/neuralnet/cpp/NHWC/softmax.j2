@@ -1,0 +1,19 @@
+{#
+ # Softmax
+ #}
+
+// Layer {{ layer_id }}: Softmax
+{
+  float max = 0.0;
+  for (int d = 0; d < {{ output_size }}; d++) {
+    max = layer_{{ layer_id - 1 }}_output[d] >= max ? layer_{{ layer_id - 1 }}_output[d] : max;
+  }
+  float sum = 0.0;
+  for (int d = 0; d < {{ output_size }}; d++) {
+    layer_{{ layer_id }}_output[d] = expf(layer_{{ layer_id - 1 }}_output[d] - max);
+    sum += layer_{{ layer_id }}_output[d];
+  }
+  for (int d = 0; d < {{ output_size }}; d++) {
+    layer_{{ layer_id }}_output[d] = layer_{{ layer_id }}_output[d] / sum;
+  }
+}

@@ -1,0 +1,46 @@
+{#
+ # Convolution
+ #}
+
+// Layer {{ layer_id }}: Conv
+{% if pads == [0, 0, 0, 0] %}
+for (int h = 0; h < {{ output_shape[2] }}; h++) {
+  for (int w = 0; w < {{ output_shape[3] }}; w++) {
+    for (int m = 0; m < {{ output_shape[1] }}; m++) {
+      layer_{{ layer_id }}_output[h][w][m] = layer_{{ layer_id }}_bias[m];
+    }
+    for (int kH = 0; kH < {{ kernel_shape[2] }}; kH++) {
+      for (int kW = 0; kW < {{ kernel_shape[3] }}; kW++) {
+        for (int c = 0; c < {{ kernel_shape[1] }}; c++) {
+          for (int m = 0; m < {{ output_shape[1] }}; m++) {
+            layer_{{ layer_id }}_output[h][w][m] += layer_{{ layer_id }}_weight[kH][kW][c][m] * layer_{{ layer_id - 1 }}_output[h * {{ strides[0] }} + kH - {{ pads[0] }}][w * {{ strides[1] }} + kW - {{ pads[1] }}][c];
+          }
+        }
+      }
+    }
+  }
+}
+{% else %}
+for (int h = 0; h < {{ output_shape[2] }}; h++) {
+  for (int w = 0; w < {{ output_shape[3] }}; w++) {
+    for (int m = 0; m < {{ output_shape[1] }}; m++) {
+      layer_{{ layer_id }}_output[h][w][m] = layer_{{ layer_id }}_bias[m];
+    }
+    for (int kH = 0; kH < {{ kernel_shape[2] }}; kH++) {
+      int iH = h * {{ strides[0] }} + kH - {{ pads[0] }};
+      if (iH >= 0 && iH < {{ input_shape[2] }}) {
+        for (int kW = 0; kW < {{ kernel_shape[3] }}; kW++) {
+          int iW = w * {{ strides[1] }} + kW - {{ pads[1] }};
+          if (iW >= 0 && iW < {{ input_shape[3] }}) {
+            for (int c = 0; c < {{ kernel_shape[1] }}; c++) {
+              for (int m = 0; m < {{ output_shape[1] }}; m++) {
+                layer_{{ layer_id }}_output[h][w][m] += layer_{{ layer_id }}_weight[kH][kW][c][m] * layer_{{ layer_id - 1 }}_output[iH][iW][c];
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+{% endif %}

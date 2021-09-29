@@ -1,0 +1,18 @@
+{#
+ # Sigmoid Function
+ #}
+
+// Layer {{ layer_id }}: Sigmoid
+{% if output_shape|length > 2 %}
+for (int c = 0; c < {{ output_shape[1] }}; c++) {
+  for (int h = 0; h < {{ output_shape[2] }}; h++) {
+    for (int w = 0; w < {{ output_shape[3] }}; w++) {
+      layer_{{ layer_id }}_output[c][h][w] = 1 / (1 + expf(-layer_{{ layer_id - 1 }}_output[c][h][w]));
+    }
+  }
+}
+{% else %}
+for (int d = 0; d < {{ output_shape[1] }}; d++) {
+  layer_{{ layer_id }}_output[d] = 1 / (1 + expf(-layer_{{ layer_id - 1 }}_output[d]));
+}
+{% endif %}

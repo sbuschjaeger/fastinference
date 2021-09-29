@@ -1,0 +1,17 @@
+{#
+ # Leaky Rectified Linear Unit
+ #}
+
+// Layer {{ layer_id }}: LeakyRelu
+for (int h = 0; h < {{ output_shape[2] }}; h++) {
+  for (int w = 0; w < {{ output_shape[3] }}; w++) {
+    for (int c = 0; c < {{ output_shape[1] }}; c++) {
+      layer_{{ layer_id }}_output[h][w][c] = layer_{{ layer_id - 1 }}_output[h][w][c] >= {{ alpha }} * x ? layer_{{ layer_id - 1 }}_output[h][w][c] : {{ alpha }} * x;
+    }
+  }
+}
+{% else %}
+for (int d = 0; d < {{ output_shape[1] }}; d++) {
+  layer_{{ layer_id }}_output[d] = layer_{{ layer_id - 1 }}_output[d] >= {{ alpha }} * x ? layer_{{ layer_id - 1 }}_output[d] : {{ alpha }} * x;
+}
+{% endif %}

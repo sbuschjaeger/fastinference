@@ -1,0 +1,6 @@
+{#
+ # Reshape
+ #}
+
+// Layer {{ layer_id }}: Reshape
+auto layer_{{ layer_id }}_output = ({{ output_type }} (*)[{{ output_shape[1:]|join('][') }}]) layer_{{ layer_id - 1 }}_output;

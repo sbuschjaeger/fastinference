@@ -1,0 +1,19 @@
+#include <math.h>
+#include <stdint.h>
+#include <limits>
+#include <algorithm>
+
+namespace {{namespace}} {
+
+{{ code_static }}
+
+void predict_{{model_name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
+    auto layer_{{ in_layer_id }}_output = x;
+	{{ code_predict|indent(4) }}
+
+    for (int i = 0; i < {{ output_shape[0] }}; i++) {
+        pred[i] += {% if model_weight != 1.0 %}{{ model_weight }} * {% endif %}layer_{{ out_layer_id }}_output[i];
+    }
+}
+
+}

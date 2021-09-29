@@ -1,0 +1,21 @@
+namespace {{namespace}} {
+
+{% macro ifelse(nodes,node, tree_weight) %}
+    {% if node.prediction is not none %}
+    {% for pred in node.prediction %}
+    pred[{{loop.index-1}}] += {{pred*tree_weight}};
+    {% endfor %}
+    {% else %}   
+    if (x[{{node.feature}}] <= {{node.split}}) {
+        {{ifelse(nodes,node.leftChild, tree_weight)|indent}}
+    } else {
+        {{ifelse(nodes,node.rightChild, tree_weight)|indent}}
+    }
+    {% endif -%} 
+{% endmacro %}
+
+void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
+    {{ifelse(model.nodes,model.head,weight)}}
+}
+
+}

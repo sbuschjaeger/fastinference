@@ -1,0 +1,6 @@
+//{{ backend.feature_type }} (*layer_{{ in_layer_id }}_output)[{{ input_shape[2:]|join('][') }}] = ({{ backend.feature_type }} (*)[{{ input_shape[2:]|join('][') }}]) x;
+auto layer_{{ in_layer_id }}_output = x;
+{{ code_predict }}
+for (int i = 0; i < {{ output_shape[0] }}; i++) {
+  pred[i] += {% if model_weight != 1.0 %}{{ model_weight }} * {% endif %}layer_{{ out_layer_id }}_output[i];
+}
