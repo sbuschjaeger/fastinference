@@ -1,0 +1,73 @@
+name: test-dt
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+
+  test-dt:
+    runs-on: ubuntu-latest
+    container: pytorchlightning/pytorch_lightning
+    name: Test DT inference
+    steps:
+      - uses: actions/checkout@v2
+      - run: | 
+          cd $GITHUB_WORKSPACE
+          pip install -e .
+          mkdir -p $outpath
+          python3 tests/data/generate_data.py --out $outpath --nclasses $nclasses --nfeatures $nfeatures --difficulty $difficulty --nexamples $nexamples
+          python3 tests/train_$type.py --training $outpath/training.csv --testing $outpath/testing.csv  --out $outpath --ntrees $ntrees --maxdepth $maxdepth
+          python3 -m fastinference --model $outpath/$modelname.json --feature_type int --language cpp --out_path $outpath --out_name "model" --implementation_type $implementationtype
+          python3 ./tests/data/convert_data.py --file $outpath/testing.csv --out $outpath/testing.h --dtype int --ltype "unsigned int"
+          cp ./tests/main.cpp $outpath
+          cp ./tests/CMakeLists.txt $outpath
+          cd $outpath
+          cmake . -DMODELNAME=$modelname
+          make
+          ./testCode
+        env:
+          type: trees
+          ntrees: 1
+          maxdepth: 5
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/trees/RF/
+          modelname: DecisionTreeClassifier
+          implementationtype: ifelse
+
+  test-rf:
+    runs-on: ubuntu-latest
+    container: pytorchlightning/pytorch_lightning
+    name: Test RF inference
+    steps:
+      - uses: actions/checkout@v2
+      - run: | 
+          cd $GITHUB_WORKSPACE
+          pip install -e .
+          mkdir -p $outpath
+          python3 tests/data/generate_data.py --out $outpath --nclasses $nclasses --nfeatures $nfeatures --difficulty $difficulty --nexamples $nexamples
+          python3 tests/train_$type.py --training $outpath/training.csv --testing $outpath/testing.csv  --out $outpath --ntrees $ntrees --maxdepth $maxdepth
+          python3 -m fastinference --model $outpath/$modelname.json --feature_type int --language cpp --out_path $outpath --out_name "model" --implementation_type $implementationtype
+          python3 ./tests/data/convert_data.py --file $outpath/testing.csv --out $outpath/testing.h --dtype int --ltype "unsigned int"
+          cp ./tests/main.cpp $outpath
+          cp ./tests/CMakeLists.txt $outpath
+          cd $outpath
+          cmake . -DMODELNAME=$modelname
+          make
+          ./testCode
+        env:
+          type: trees
+          ntrees: 25
+          maxdepth: 5
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/trees/RF/
+          modelname: RandomForestClassifier
+          implementationtype: ifelse
+
+  

@@ -1,0 +1,119 @@
+name: Running tests
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+
+  tests:
+    runs-on: ubuntu-latest
+    container: pytorchlightning/pytorch_lightning
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare
+        run: |
+            pip install -e .
+
+      - name: Test single QDA
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+        env:
+          type: qda
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/qda/single/
+          modelname: DiscriminantAnalysis
+          nestimators: 1
+      - name: Test bagged QDA
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+        env:
+          type: qda
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/qda/bagging/
+          modelname: BaggingDiscriminantAnalysis
+          nestimators: 20
+
+      - name: Test DT inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+        env:
+          type: trees
+          nestimators: 1
+          maxdepth: 5
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/trees/RF/
+          modelname: DecisionTreeClassifier
+          implementationtype: ifels
+      - name: Test RF inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+        env:
+          type: qda
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/qda/bagging/
+          modelname: BaggingDiscriminantAnalysis
+          nestimators: 20
+
+      - name: Test linear inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+        env:
+          type: linear
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/linear/single/
+          modelname: RidgeClassifier
+          nestimators: 1
+      - name: Test bagged linear inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+        env:
+          type: linear
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/linear/bagging/
+          modelname: BaggingRidgeClassifier
+          nestimators: 20
+
+      - name: Test nn inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators
+        env:
+          type: nn
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/nn/cpp/float/
+          modelname: SimpleMLP

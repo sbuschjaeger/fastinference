@@ -1,0 +1,134 @@
+name: test-qda-pi3
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  # prepare:
+  #   runs-on: ls8rsp01
+  #   name: Prepare Conda environment
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: | 
+  #         cd $GITHUB_WORKSPACE
+  #         if [ ! -f ~/berryconda3/envs/fi/gitcommit ] || [ $(git diff --name-only HEAD~1 HEAD | grep ./tests/environment-pi3.yml) ]; then
+  #           ~/berryconda3/bin/conda env create -f ./tests/environment-pi3.yml  --force
+  #           source ~/berryconda3/bin/activate fi
+  #           pip install -e .
+  #           echo $GITHUB_SHA > ~/berryconda3/envs/fi/gitcommit
+  #         fi
+
+  # test-qda:
+  #   runs-on: ls8rsp01 #self-hosted
+  #   name: Test qda models on pi3
+  #   needs: prepare
+  #   #runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: |
+  #         cd $GITHUB_WORKSPACE/
+  #         source ~/berryconda3/bin/activate fi
+  #         mkdir -p ./tmp
+  #         python3 -m fastinference --model $modelpath  --feature_type float --out_path ./tmp --out_name "model"
+  #         cp ./tests/data/*.csv ./tmp/
+  #         cp $testpath/main.cpp ./tmp/
+  #         cp $testpath/CMakeLists.txt ./tmp/
+  #         cd ./tmp
+  #         cmake . -DMODELNAME=$modelname
+  #         make
+  #         output=$(./testCode | tail -n 1)
+  #         echo "$GITHUB_SHA,$(date +"%a %d %b %Y %H:%M:%S"),$modelname,default,covtype,pi3,${output}" | ssh fiactions@kimme -T "cat >> /media/shared/fastinference/runtimes.csv"
+  #       env:
+  #         modelpath: ./tests/qda/models/single/qda.json
+  #         modelname: DiscriminantAnalysis
+  #         testpath: ./tests/qda
+
+  prepare:
+    runs-on: kimme
+    name: Prepare Conda environment
+    steps:
+      - uses: actions/checkout@v2
+      - run: | 
+          cd $GITHUB_WORKSPACE
+          if [ ! -f ~/.conda/envs/fi/gitcommit ] || [ ! "$GITHUB_SHA" = "$(cat ~/.conda/envs/fi/gitcommit)" ]; then
+            source /opt/anaconda3/bin/activate
+            conda env create -f ./tests/environment-x86.yml --force
+            echo $GITHUB_SHA > ~/.conda/envs/fi/gitcommit
+          fi
+
+  train:
+    runs-on: kimme
+    name: Train qda models
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v2
+      - run: | 
+          cd $GITHUB_WORKSPACE/
+          if [ ! -f ~/gitcommit_qda ] || [ ! "$GITHUB_SHA" = "$(cat ~/.conda/envs/fi/gitcommit_qda)" ]; then
+            source /opt/anaconda3/bin/activate
+            conda activate fi
+            cd $testpath 
+            ./train.py
+            echo $GITHUB_SHA > ~/gitcommit_qda
+          fi
+    env:
+      testpath: ./tests/qda
+
+  test-qda:
+    runs-on: kimme #self-hosted
+    name: Test qda models on pi3
+    needs: train
+    #runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          cd $GITHUB_WORKSPACE/
+          source /opt/anaconda3/bin/activate
+          conda activate fi
+          mkdir -p ./tmp
+          python3 -m fastinference --model $modelpath --feature_type float --language cpp --out_path ./tmp --out_name "model"
+          cp $testpath/main.cpp ./tmp/
+          cp $testpath/CMakeLists.txt ./tmp/
+          cd ./tmp
+          cmake . -DMODELNAME=$modelname -DCMAKE_TOOLCHAIN_FILE=../tests/cmake/arm-toolchain-pi3.cmake
+          make
+          ssh $target "rm -r /tmp/fi 2> /dev/null; mkdir -p /tmp/fi"
+          scp ../tests/data/*_testing.csv $target:/tmp/fi/
+          scp testCode $target:/tmp/fi/
+          output=$(ssh $target "cd /tmp/fi && ./testCode" | tail -n 1)
+          echo "$GITHUB_SHA,$(date +"%a %d %b %Y %H:%M:%S"),$modelname,default,covtype,pi3,${output}" >> /media/shared/fastinference/runtimes.csv
+        env:
+          target: ls8rsp01
+          modelpath: ./tests/qda/models/single/DiscriminantAnalysis.json
+          modelname: DiscriminantAnalysis
+          testpath: ./tests/qda
+    
+  test-qda-bagging:
+    runs-on: kimme #self-hosted
+    name: Test bagged qda models on pi3
+    needs: train
+    #runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          cd $GITHUB_WORKSPACE/
+          source /opt/anaconda3/bin/activate
+          conda activate fi
+          mkdir -p ./tmp
+          python3 -m fastinference --model $modelpath --feature_type float --language cpp --out_path ./tmp --out_name "model"
+          cp $testpath/main.cpp ./tmp/
+          cp $testpath/CMakeLists.txt ./tmp/
+          cd ./tmp
+          cmake . -DMODELNAME=$modelname -DCMAKE_TOOLCHAIN_FILE=../tests/cmake/arm-toolchain-pi3.cmake
+          make
+          ssh $target "rm -r /tmp/fi 2> /dev/null; mkdir -p /tmp/fi"
+          scp ../tests/data/*_testing.csv $target:/tmp/fi/
+          scp testCode $target:/tmp/fi/
+          output=$(ssh $target "cd /tmp/fi && ./testCode" | tail -n 1)
+          echo "$GITHUB_SHA,$(date +"%a %d %b %Y %H:%M:%S"),$modelname,default,covtype,pi3,${output}" >> /media/shared/fastinference/runtimes.csv
+        env:
+          target: ls8rsp01
+          modelpath: ./tests/qda/models/ensemble/BaggingDiscriminantAnalysis.json
+          modelname: BaggingClassifier_qda
+          testpath: ./tests/qda

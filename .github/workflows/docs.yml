@@ -1,0 +1,38 @@
+name: Building docs
+on:
+  push:
+    branches: [master]
+
+jobs:
+  test-cpp:
+    runs-on: ubuntu-latest
+    #container: pytorchlightning/pytorch_lightning
+    name: Generate docs
+    #shell: bash -l {0}
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Generate the docs
+        run: |
+          pip install sphinx 
+          pip install karma-sphinx-theme 
+          pip install sphinx_rtd_theme
+          cd docs/
+          make html
+          rm -rf api html latex xml make.bat Doxyfile.bat 
+          mv _build/html html
+          rm -rf _build
+      - name: Commit documentation # transfer the new html files back into the repository
+        run: |
+          git config --local user.name "sbuschjaeger"
+          git add docs/*
+          git commit -m "Added documentation" || echo "Nothing to update"
+      - name: Push changes # push the output folder to your repo
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+  

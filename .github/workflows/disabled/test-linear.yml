@@ -1,0 +1,66 @@
+name: test-linear
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  test-single-linear:
+    runs-on: ubuntu-latest
+    container: pytorchlightning/pytorch_lightning
+    name: Test single-linear inference
+    steps:
+      - uses: actions/checkout@v2
+      - run: | 
+          cd $GITHUB_WORKSPACE
+          pip install -e .
+          mkdir -p $outpath
+          python3 tests/data/generate_data.py --out $outpath --nclasses $nclasses --nfeatures $nfeatures --difficulty $difficulty --nexamples $nexamples
+          python3 tests/train_$type.py --training $outpath/training.csv --testing $outpath/testing.csv  --out $outpath --nestimators $nestimators 
+          python3 -m fastinference --model $outpath/$modelname.json --feature_type int --language cpp --out_path $outpath --out_name "model" 
+          python3 ./tests/data/convert_data.py --file $outpath/testing.csv --out $outpath/testing.h --dtype int --ltype "unsigned int"
+          cp ./tests/main.cpp $outpath
+          cp ./tests/CMakeLists.txt $outpath
+          cd $outpath
+          cmake . -DMODELNAME=$modelname
+          make
+          ./testCode
+        env:
+          type: linear
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/linear/single/
+          modelname: RidgeClassifier
+          nestimators: 1
+    
+  test-bagged-linear:
+    runs-on: ubuntu-latest
+    container: pytorchlightning/pytorch_lightning
+    name: Test Bagged-Linear inference
+    steps:
+      - uses: actions/checkout@v2
+      - run: | 
+          cd $GITHUB_WORKSPACE
+          pip install -e .
+          mkdir -p $outpath
+          python3 tests/data/generate_data.py --out $outpath --nclasses $nclasses --nfeatures $nfeatures --difficulty $difficulty --nexamples $nexamples
+          python3 tests/train_$type.py --training $outpath/training.csv --testing $outpath/testing.csv  --out $outpath --nestimators $nestimators 
+          python3 -m fastinference --model $outpath/$modelname.json --feature_type int --language cpp --out_path $outpath --out_name "model" 
+          python3 ./tests/data/convert_data.py --file $outpath/testing.csv --out $outpath/testing.h --dtype int --ltype "unsigned int"
+          cp ./tests/main.cpp $outpath
+          cp ./tests/CMakeLists.txt $outpath
+          cd $outpath
+          cmake . -DMODELNAME=$modelname
+          make
+          ./testCode
+        env:
+          type: linear
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/linear/bagging/
+          modelname: BaggingRidgeClassifier
+          nestimators: 20

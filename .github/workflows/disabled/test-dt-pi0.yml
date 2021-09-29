@@ -1,0 +1,98 @@
+name: test-dt-pi0
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  prepare:
+    runs-on: kimme
+    name: Prepare Conda environment
+    steps:
+      - uses: actions/checkout@v2
+      - run: | 
+          cd $GITHUB_WORKSPACE
+          if [ ! -f ~/.conda/envs/fi/gitcommit ] || [ ! "$GITHUB_SHA" = "$(cat ~/.conda/envs/fi/gitcommit)" ]; then
+            source /opt/anaconda3/bin/activate
+            conda env create -f ./tests/environment-x86.yml --force
+            echo $GITHUB_SHA > ~/.conda/envs/fi/gitcommit
+          fi
+  
+  train:
+    runs-on: kimme
+    name: Train trees models
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v2
+      - run: | 
+          cd $GITHUB_WORKSPACE/
+          if [ ! -f ~/gitcommit_trees ] || [ ! "$GITHUB_SHA" = "$(cat ~/.conda/envs/fi/gitcommit_trees)" ]; then
+            source /opt/anaconda3/bin/activate
+            conda activate fi
+            cd $testpath 
+            ./train.py
+            echo $GITHUB_SHA > ~/gitcommit_trees
+          fi
+    env:
+      testpath: ./tests/trees
+
+  test-treelite-rf:
+    runs-on: kimme #self-hosted
+    name: Test treelite with RandomForest on pi0
+    needs: train
+    #runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          cd $GITHUB_WORKSPACE/
+          source /opt/anaconda3/bin/activate
+          conda activate fi
+          mkdir -p ./tmp
+          python3 $testpath/generate_treelite.py --model_path $modelpath --out_path ./tmp/
+          mv ./tmp/main.c ./tmp/model.cpp
+          cp $testpath/main.cpp ./tmp/
+          cp $testpath/CMakeLists.txt ./tmp/
+          cd ./tmp
+          echo "#pragma once"|cat - header.h > /tmp/out && mv /tmp/out header.h
+          cmake . -DTREELITE=ON -DCMAKE_TOOLCHAIN_FILE=../tests/cmake/arm-toolchain-pi0.cmake
+          make
+          ssh $target "rm -r /tmp/fi 2> /dev/null; mkdir -p /tmp/fi"
+          scp ../tests/data/*_testing.csv $target:/tmp/fi/
+          scp testCode $target:/tmp/fi/
+          output=$(ssh $target "cd /tmp/fi && ./testCode" | tail -n 1)
+          echo "$GITHUB_SHA,$(date +"%a %d %b %Y %H:%M:%S"),$modelname,$backend,covtype,pi0,${output}" >> /media/shared/fastinference/runtimes.csv
+        env:
+          target: p1
+          modelpath: ./tests/trees/models/ensemble/RandomForestClassifier.joblib
+          modelname: RandomForestClassifier
+          testpath: ./tests/trees
+          backend: treelite
+
+  test-ifelse-rf:
+    runs-on: kimme #self-hosted
+    name: Test ifelse with RandomForest on pi0
+    needs: train
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          cd $GITHUB_WORKSPACE/
+          source /opt/anaconda3/bin/activate
+          conda activate fi
+          mkdir -p ./tmp
+          python3 -m fastinference --model $modelpath --feature_type float --language cpp --implementation_type $implementation_type --out_path ./tmp --out_name "model"
+          cp $testpath/main.cpp ./tmp/
+          cp $testpath/CMakeLists.txt ./tmp/
+          cd ./tmp
+          cmake . -DMODELNAME=$modelname -DCMAKE_TOOLCHAIN_FILE=../tests/cmake/arm-toolchain-pi0.cmake
+          make
+          ssh $target "rm -r /tmp/fi 2> /dev/null; mkdir -p /tmp/fi"
+          scp ../tests/data/*_testing.csv $target:/tmp/fi/
+          scp testCode $target:/tmp/fi/
+          output=$(ssh $target "cd /tmp/fi && ./testCode" | tail -n 1)
+          echo "$GITHUB_SHA,$(date +"%a %d %b %Y %H:%M:%S"),$modelname,$implementation_type,covtype,pi0,${output}" >> /media/shared/fastinference/runtimes.csv
+        env:
+          target: p1
+          modelpath: ./tests/trees/models/ensemble/RandomForestClassifier.json
+          modelname: RandomForestClassifier
+          testpath: ./tests/trees
+          implementation_type: ifelse
