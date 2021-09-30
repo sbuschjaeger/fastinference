@@ -94,21 +94,20 @@ class SimpleCNN(pl.LightningModule):
             self.activation = BinaryTanh()
             self.out = BinaryLinear(32, 10)
         else:
-            pass
-            # self.conv1 = nn.Conv2d(1, 4, 3, 1)
-            # self.bn_1 = nn.BatchNorm2d(4)
-            # self.activation_1 = nn.ReLU()
-            # self.pool_1 = nn.MaxPool2d(2)
+            self.conv1 = nn.Conv2d(1, 32, 3, 1)
+            self.bn_1 = nn.BatchNorm2d(32)
+            self.activation_1 = nn.ReLU()
+            self.pool_1 = nn.MaxPool2d(2)
 
-            # self.conv2 = nn.Conv2d(4, 8, 3, 1)
-            # self.bn_2 = nn.BatchNorm2d(8)
-            # self.activation_2 = nn.ReLU()
-            # self.pool_2 = nn.MaxPool2d(2)
+            self.conv2 = nn.Conv2d(32, 32, 3, 1)
+            self.bn_2 = nn.BatchNorm2d(32)
+            self.activation_2 = nn.ReLU()
+            self.pool_2 = nn.MaxPool2d(2)
 
-            # self.fc_1 = torch.nn.Linear(8 * 5 * 5, 128)
-            # self.bn = nn.BatchNorm1d(128)
-            # self.activation = nn.ReLU()
-            # self.out = torch.nn.Linear(128, 10)
+            self.fc_1 = torch.nn.Linear(32 * 5 * 5, 32)
+            self.bn = nn.BatchNorm1d(32)
+            self.activation = nn.ReLU()
+            self.out = torch.nn.Linear(32, 10)
 
     def forward(self, x):
         batch_size = x.shape[0]
@@ -158,30 +157,6 @@ class SimpleCNN(pl.LightningModule):
 
     def on_epoch_start(self):
         print('\n')
-
-# class WrappedBatchNorm(nn.Module):
-#     def __init__(self, bn):
-#         super().__init__()
-#         self.weight = bn.weight
-#         self.bias = bn.bias
-#         self.eps = bn.eps
-#         if bn.momentum is None:
-#             self.exponential_average_factor = 0.0
-#         else:
-#             self.exponential_average_factor = bn.momentum
-
-#     def forward(self, x):
-
-#         return torch.functional.batch_norm(
-#             x,
-#             None,
-#             None,
-#             self.weight,
-#             self.bias,
-#             False,
-#             self.exponential_average_factor,
-#             self.eps
-#         )
 
 def sanatize_onnx(model):
     """ONNX does not support binary layers out of the box and exporting custom layers is sometimes difficult. This function sanatizes a given MLP so that it can be exported into an onnx file. To do so, it replaces all BinaryLinear layer with regular nn.Linear layers and BinaryTanh with Sign() layers. Weights and biases are copied and binarized as required.

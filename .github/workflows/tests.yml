@@ -127,6 +127,21 @@ jobs:
           implementation: cpp.NHWC
           modelname: SimpleMLP
       
+      - name: Test binary MLP inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation --binarize=on
+        env:
+          type: mlp
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/
+          implementation: cpp.binary
+          modelname: SimpleMLP
+
       - name: Test CNN inference
         run: | 
             cd $GITHUB_WORKSPACE
@@ -140,4 +155,19 @@ jobs:
           nexamples: 10000
           outpath: /tmp/fastinference/
           implementation: cpp.NHWC
+          modelname: SimpleCNN
+    
+      - name: Test binary CNN inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation --binarize=on
+        env:
+          type: cnn
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/
+          implementation: cpp.binary
           modelname: SimpleCNN
