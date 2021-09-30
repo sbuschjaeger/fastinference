@@ -1,0 +1,4 @@
+{#
+ # Initialization
+ #}
+static constexpr {{ data_type }} layer_{{ layer_id }}_{{ name }}[{{ shape|join('][') }}]{% if align > 1 %} __attribute__((aligned({{ align }}))){% endif %} = {{ value|replace('[', '{')|replace(']', '}') }};

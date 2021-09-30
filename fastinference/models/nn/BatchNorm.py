@@ -25,28 +25,3 @@ class BatchNorm(Layer):
         self.bias = bias - scale * mean / np.sqrt(var + epsilon)
         self.scale = scale / np.sqrt(var + epsilon)
         super().__init__(input_shape, input_shape, "batchnorm")
-
-
-    # def to_implementation(self, backend):
-    #     code_global = ""
-    #     code_init = render(
-    #         'init', 
-    #         name='scale', 
-    #         shape=self.scale.shape,
-    #         value=self.scale.tolist(),
-    #         backend=backend
-    #     )
-    #     code_init += render(
-    #         'init', 
-    #         name='bias', 
-    #         shape=self.bias.shape,
-    #         value=self.bias.tolist(),
-    #         backend=backend
-    #     )
-    #     code_predict = render(
-    #         'batchnormalization', 
-    #         output_shape=self.output_shape,
-    #         backend = backend
-    #     )
-
-    #     return code_global, code_init, code_predict

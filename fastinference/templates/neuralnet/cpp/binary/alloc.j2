@@ -1,0 +1,4 @@
+{#
+ # Binary Allocation
+ #}
+static {{ output_type }} layer_{{ layer_id }}_output{% if output_shape|length > 2 %}[{{ output_shape[2] }}][{{ output_shape[3] }}][{{ (output_shape[1] / binary_word_size)|round(method='ceil')|int }}]{% else %}[{{ (output_shape[1] / binary_word_size)|round(method='ceil')|int }}]{% endif %}{% if align > 1 %} __attribute__((aligned({{ align }}))){% endif %};

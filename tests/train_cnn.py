@@ -79,43 +79,56 @@ class SimpleCNN(pl.LightningModule):
         super().__init__()
         # mnist images are (1, 28, 28) (channels, width, height) 
         if binarize:
-            pass
+            self.conv1 = BinaryConv2d(1, 32, 3, 1)
+            self.bn_1 = nn.BatchNorm2d(32)
+            self.activation_1 = BinaryTanh()
+            self.pool_1 = nn.MaxPool2d(2)
+
+            self.conv2 = BinaryConv2d(32, 32, 3, 1)
+            self.bn_2 = nn.BatchNorm2d(32)
+            self.activation_2 = BinaryTanh()
+            self.pool_2 = nn.MaxPool2d(2)
+
+            self.fc_1 = BinaryLinear(32 * 5 * 5, 32)
+            self.bn = nn.BatchNorm1d(32)
+            self.activation = BinaryTanh()
+            self.out = BinaryLinear(32, 10)
         else:
-            self.conv1 = nn.Conv2d(1, 4, 3, 1)
+            pass
+            # self.conv1 = nn.Conv2d(1, 4, 3, 1)
+            # self.bn_1 = nn.BatchNorm2d(4)
+            # self.activation_1 = nn.ReLU()
             # self.pool_1 = nn.MaxPool2d(2)
-            self.activation_1 = nn.ReLU()
-            self.bn_1 = nn.BatchNorm2d(4)
 
-            self.conv2 = nn.Conv2d(4, 8, 3, 1)
-            self.activation_2 = nn.ReLU()
+            # self.conv2 = nn.Conv2d(4, 8, 3, 1)
+            # self.bn_2 = nn.BatchNorm2d(8)
+            # self.activation_2 = nn.ReLU()
             # self.pool_2 = nn.MaxPool2d(2)
-            self.bn_2 = nn.BatchNorm2d(8)
 
-            #self.layer_3 = torch.nn.Linear(8 * 5 * 5, 128)
-            self.layer_3 = torch.nn.Linear(8 * 24 * 24, 128)
-            self.activation_3 = nn.ReLU()
-            self.bn_3 = nn.BatchNorm1d(128)
-            self.layer_4 = torch.nn.Linear(128, 10)
+            # self.fc_1 = torch.nn.Linear(8 * 5 * 5, 128)
+            # self.bn = nn.BatchNorm1d(128)
+            # self.activation = nn.ReLU()
+            # self.out = torch.nn.Linear(128, 10)
 
     def forward(self, x):
         batch_size = x.shape[0]
         x = x.view((batch_size, 1, 28, 28))
-        #x = x.reshape((batch_size, 1, 28, 28))
+
         x = self.conv1(x)
-        # x = self.pool_1(x)
-        x = self.activation_1(x)
         x = self.bn_1(x)
+        x = self.activation_1(x)
+        x = self.pool_1(x)
 
         x = self.conv2(x)
-        # x = self.pool_2(x)
-        x = self.activation_2(x)
         x = self.bn_2(x)
+        x = self.activation_2(x)
+        x = self.pool_2(x)
 
         x = x.view(batch_size, -1)
-        x = self.layer_3(x)
-        x = self.activation_3(x)
-        x = self.bn_3(x)
-        x = self.layer_4(x)
+        x = self.fc_1(x)
+        x = self.bn(x)
+        x = self.activation(x)
+        x = self.out(x)
         x = torch.log_softmax(x, dim=1)
 
         return x
@@ -146,6 +159,30 @@ class SimpleCNN(pl.LightningModule):
     def on_epoch_start(self):
         print('\n')
 
+# class WrappedBatchNorm(nn.Module):
+#     def __init__(self, bn):
+#         super().__init__()
+#         self.weight = bn.weight
+#         self.bias = bn.bias
+#         self.eps = bn.eps
+#         if bn.momentum is None:
+#             self.exponential_average_factor = 0.0
+#         else:
+#             self.exponential_average_factor = bn.momentum
+
+#     def forward(self, x):
+
+#         return torch.functional.batch_norm(
+#             x,
+#             None,
+#             None,
+#             self.weight,
+#             self.bias,
+#             False,
+#             self.exponential_average_factor,
+#             self.eps
+#         )
+
 def sanatize_onnx(model):
     """ONNX does not support binary layers out of the box and exporting custom layers is sometimes difficult. This function sanatizes a given MLP so that it can be exported into an onnx file. To do so, it replaces all BinaryLinear layer with regular nn.Linear layers and BinaryTanh with Sign() layers. Weights and biases are copied and binarized as required.
 
@@ -162,7 +199,7 @@ def sanatize_onnx(model):
             return torch.where(input > 0, torch.tensor([1.0]), torch.tensor([-1.0]))
             # return torch.sign(input)
 
-    for name, m in reversed(model._modules.items()):
+    for name, m in model._modules.items():
         print("Checking {}".format(name))
 
         if isinstance(m, BinaryLinear):
@@ -177,6 +214,28 @@ def sanatize_onnx(model):
         if isinstance(m, BinaryTanh):
             model._modules[name] = Sign()
 
+        if isinstance(m, BinaryConv2d):
+            print("Replacing {}".format(name))
+            # layer_old = m
+            layer_new = nn.Conv2d(
+                in_channels = m.in_channels, 
+                out_channels = m.out_channels, 
+                kernel_size = m.kernel_size, 
+                stride = m.stride, 
+                #padding = m.padding,
+                bias = hasattr(m, 'bias')
+            )
+
+            if (hasattr(m, 'bias')):
+                layer_new.bias.data = binarize(m.bias.data)
+            layer_new.weight.data = binarize(m.weight.data)
+            model._modules[name] = layer_new
+            print(model._modules[name].weight.data)
+        
+        # if isinstance(m, nn.BatchNorm2d):
+        #     layer_new = WrappedBatchNorm(m)
+        #     model._modules[name] = layer_new
+
     return model
 
 def eval_model(model, x_train, y_train, x_test, y_test, out_path, name):
@@ -187,9 +246,9 @@ def eval_model(model, x_train, y_train, x_test, y_test, out_path, name):
     train_dataloader = DataLoader(TensorDataset(x_train_tensor, y_train_tensor), batch_size=64)
     val_loader = None #DataLoader(TensorDataset(x_test_tensor, y_test_tensor), batch_size=64)
 
-    trainer = pl.Trainer(max_epochs = 1, default_root_dir = out_path, progress_bar_refresh_rate = 0)
+    trainer = pl.Trainer(max_epochs = 1, default_root_dir = out_path, progress_bar_refresh_rate = 1)
     trainer.fit(model, train_dataloader, val_loader)
-    model.eval() # This is to make sure that model is removed from the training state to avoid errors
+    model.eval() 
     
     start_time = datetime.datetime.now()
     preds = model.predict(x_test)
@@ -213,7 +272,7 @@ def eval_model(model, x_train, y_train, x_test, y_test, out_path, name):
         "batch-latency": batch_time / x_test.shape[0],
         "single-latency": single_time / x_test.shape[0]
     }
-    print("accuracy: {}".format(djson["accuracy"]))
+    print("Model accuracy is {}".format(djson["accuracy"]))
     # print("batch-latency: {}".format(djson["batch-latency"]))
     # print("single-latency: {}".format(djson["single-latency"]))
 
@@ -224,14 +283,20 @@ def eval_model(model, x_train, y_train, x_test, y_test, out_path, name):
         name += ".onnx"
 
     print("Exporting {} to {}".format(name,out_path))
-    # Export the model, onnx file name:super_resolution.onnx
+    # Export the model. Since torch traces the model we should put it in eval mode to 
+    # prevent any updates to it (yes I know it sounds weird, but this way I sometimes ended
+    # up with float weights after sanatizing -.-) 
     model = sanatize_onnx(model)
+
     print(model)
-    torch.onnx.export(model,dummy_x,os.path.join(out_path,name), export_params=True,opset_version=11, do_constant_folding=True, input_names = ['input'],  output_names = ['output'], dynamic_axes={'input' : {0 : 'batch_size'},'output' : {0 : 'batch_size'}})
+    print(model._modules["conv1"].weight.data)
+
+    # https://github.com/pytorch/pytorch/issues/49229
+    # set torch.onnx.TrainingMode.PRESERVE
+    torch.onnx.export(model, dummy_x,os.path.join(out_path,name), training=torch.onnx.TrainingMode.PRESERVE, export_params=True,opset_version=11, do_constant_folding=True, input_names = ['input'],  output_names = ['output'], dynamic_axes={'input' : {0 : 'batch_size'},'output' : {0 : 'batch_size'}})
 
     onnx_model = onnx.load(os.path.join(out_path,name))
     onnx.checker.check_model(onnx_model)
-
 
 def main():
     parser = argparse.ArgumentParser(description='Train MLPs on the supplied data. This script assumes that each supplied training / testing CSV has a unique column called `label` which contains the labels.')

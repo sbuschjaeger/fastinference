@@ -1,0 +1,9 @@
+{%- if accuracy is not none %}
+#define REF_ACCURACY {{accuracy}}
+{% endif %}
+
+#pragma once 
+
+namespace {{namespace}} {
+    void predict_{{ name }}({{ feature_type }} const * const x, {{ label_type }} * pred);
+}

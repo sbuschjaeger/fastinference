@@ -107,6 +107,7 @@ class Step(Layer):
         self.threshold = threshold
         self.low = low 
         self.high = high
+        self.threshold_is_high = True
 
 # class Softmax(Layer):
 #     """Softmax (normalized exponential)

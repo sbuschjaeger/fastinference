@@ -61,14 +61,7 @@ def main():
     to_implementation(loaded_model, args.out_path, args.out_name, weight = 1.0, **unknown)
 
 if __name__ == '__main__':
-    # sys.argv = [
-    #     "./fastinference.py",
-    #     "--model", "/tmp/fastinference/nn/cpp/SimpleCNN.onnx",
-    #     "--feature_type", "int",
-    #     "--implementation", "cpp.NHWC",
-    #     "--out_path", "/tmp/fastinference/nn/cpp/", 
-    #     "--out_name", "model"
-    # ]
-    #print(sys.argv)
+    # sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference/SimpleCNN/SimpleCNN.onnx', '--feature_type', 'int', '--out_path', '/tmp/fastinference/SimpleCNN', '--out_name', 'model', '--implementation', 'cpp.binary']
+    print(sys.argv)
     main()
     # python3 -m fastinference --model /tmp/fastinference/nn/cpp/binary/SimpleMLP.onnx --feature_type int --implementation cpp.NHWC --out_path /tmp/fastinference/nn/cpp/binary/ --out_name "model"

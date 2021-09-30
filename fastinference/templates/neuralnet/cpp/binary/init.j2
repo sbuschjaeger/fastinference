@@ -1,0 +1,4 @@
+{#
+ # Binary Initialization
+ #}
+static constexpr {{ data_type }} layer_{{ layer_id }}_{{ name }}[{{ shape[:-1]|join('][') }}][{{ (shape[-1] / binary_word_size)|round(method='ceil')|int }}]{% if align > 1 %} __attribute__((aligned({{ align }}))){% endif %} = {{ value|replace('[', '{')|replace(']', '}')|replace('\'', '') }};

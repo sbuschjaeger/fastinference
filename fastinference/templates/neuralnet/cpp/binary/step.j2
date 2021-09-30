@@ -1,0 +1,37 @@
+{#
+ # Binary Step Function
+ #}
+
+{% set bit = '1ULL' if binary_word_size >= 64 else '1U' %}
+// Layer {{ layer_id }}: Step
+{% if layer.output_shape|length > 2 %}
+for (int h = 0; h < {{ layer.output_shape[2] }}; h++) {
+  for (int w = 0; w < {{ layer.output_shape[3] }}; w++) {
+    for (int c = 0; c < {{ layer.output_shape[1] }}; c++) {
+      if (layer_{{ layer_id - 1 }}_output[h][w][c] {% if layer.threshold_is_high %}>={% else %}>{% endif %} {% if layer.threshold is iterable %}layer_{{ layer_id }}_threshold[c]{% else %}{{ layer.threshold }}{% endif %}) {
+        layer_{{ layer_id }}_output[h][w][c / {{ [layer.output_shape[1], binary_word_size]|min }}] |= ({{ bit }} << ({{ binary_word_size - 1}} - c % {{ [layer.output_shape[1], binary_word_size]|min }}));
+      } else {
+        layer_{{ layer_id }}_output[h][w][c / {{ [layer.output_shape[1], binary_word_size]|min }}] &= ~({{ bit }} << ({{ binary_word_size - 1}} - c % {{ [layer.output_shape[1], binary_word_size]|min }}));
+      }
+    }
+    {% if layer.output_shape[1] % binary_word_size != 0 %}
+    for (int c = {{ layer.output_shape[1] }}; c < {{ (layer.output_shape[1] / binary_word_size)|round(method='ceil')|int * binary_word_size }}; c++) {
+      layer_{{ layer_id }}_output[h][w][c / {{ [layer.output_shape[1], binary_word_size]|min }}] &= ~({{ bit }} << ({{ binary_word_size - 1}} - c % {{ [layer.output_shape[1], binary_word_size]|min }}));
+    }
+    {% endif %}
+  }
+}
+{% else %}
+for (int d = 0; d < {{ layer.output_shape[1] }}; d++) {
+  if (layer_{{ layer_id - 1 }}_output[d] {% if layer.threshold_is_high %}>={% else %}>{% endif %} {% if layer.threshold is iterable %}layer_{{ layer_id }}_threshold[d]{% else %}{{ layer.threshold }}{% endif %}) {
+    layer_{{ layer_id }}_output[d / {{ [layer.output_shape[1], binary_word_size]|min }}] |= ({{ bit }} << ({{ binary_word_size - 1}} - d % {{ [layer.output_shape[1], binary_word_size]|min }}));
+  } else {
+    layer_{{ layer_id }}_output[d / {{ [layer.output_shape[1], binary_word_size]|min }}] &= ~({{ bit }} << ({{ binary_word_size - 1}} - d % {{ [layer.output_shape[1], binary_word_size]|min }}));
+  }
+}
+{% if layer.output_shape[1] % binary_word_size != 0 %}
+for (int d = {{ layer.output_shape[1] }}; d < {{ (layer.output_shape[1] / binary_word_size)|round(method='ceil')|int * binary_word_size }}; d++) {
+  layer_{{ layer_id }}_output[d / {{ [layer.output_shape[1], binary_word_size]|min }}] &= ~({{ bit }} << ({{ binary_word_size - 1}} - d % {{ [layer.output_shape[1], binary_word_size]|min }}));
+}
+{% endif %}
+{% endif %}

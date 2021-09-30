@@ -28,7 +28,7 @@ auto benchmark(unsigned int repeat = 20) {
 	        //          SET(MODELNAME "" CACHE STRING "Name of the model / classifier. Usually found in the corresponding JSON file.")
 	        //          target_compile_definitions(testCode PRIVATE -Dpredict=predict_${MODELNAME})
 			//int const * const x = &X[i*NUM_FEATURES];
-			double const * const x = &X[i*NUM_FEATURES];
+			FEATURE_TYPE const * const x = &X[i*NUM_FEATURES];
 			predict(x, output);
 			/*if (i < 35) {
 				for (unsigned int j = 0; j < NUM_FEATURES; ++j) {

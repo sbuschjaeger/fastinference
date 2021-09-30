@@ -21,6 +21,9 @@ endif()
 # but so far having two different options seems okay
 SET(MODELNAME "" CACHE STRING "Name of the model / classifier. Usually found in the corresponding JSON file.")
 
+SET(FEATURE_TYPE "" CACHE STRING "Data type of input features, e.g. int or double")
+
+
 # if (CMAKE_CROSSCOMPILING)
 #     # For some reason cmake keeps adding the "-rdynamic" options, so we forcefully remove it here
 #     set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "--specs=nosys.specs")
@@ -33,4 +36,4 @@ file(GLOB SRC_CPP
 
 add_executable(testCode main.cpp ${SRC_CPP})
 
-target_compile_definitions(testCode PRIVATE -Dpredict=predict_${MODELNAME})
+target_compile_definitions(testCode PRIVATE -Dpredict=predict_${MODELNAME} -DFEATURE_TYPE=${FEATURE_TYPE})
