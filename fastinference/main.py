@@ -48,20 +48,35 @@ def main():
     parser.add_argument('--implementation', required=True, help = "Target implementation.", type=str)
     parser.add_argument('--out_name', required=False, default="model", type=str, help='Filename under which the generated code should be stored.')
     parser.add_argument('--out_path', required=False, default=".", type=str, help='Folder under which the generated code should be stored.')
-    parser.add_argument('-v', '--verbose', action="store_const", const=logging.INFO, default=logging.WARNING, help="Be verbose.")
+    parser.add_argument('--optimize', nargs='+', default=None, help="List of optimizations which are performed on the model before code generation.")
 
     args, unknown = parser.parse_known_args()
     unknown = parse_unknown(unknown)
 
-    logging.basicConfig(level=args.verbose)
     loaded_model = Loader.model_from_file(args.model)
 
-    to_implementation = dynamic_import("templates.{}.{}.implement".format(loaded_model.category,args.implementation), "to_implementation")
+    if args.optimize is not None and len(args.optimize) > 0:
+        optimizer_args = []
+        for opt in args.optimize:
+            cur_args = {}
+            for key in list(unknown.keys()):
+                if key.split(":")[0] == opt:
+                    cur_args[ key.split(":")[1] ] = unknown[key]
+                    del unknown[key]
+            optimizer_args.append(cur_args)  
+
+        loaded_model.optimize(args.optimize, optimizer_args)
+
     os.makedirs(args.out_path, exist_ok = True)
-    to_implementation(loaded_model, args.out_path, args.out_name, weight = 1.0, **unknown)
+    loaded_model.implement(args.out_path, args.out_name, args.implementation, **unknown)
+
+    # to_implementation = dynamic_import("templates.{}.{}.implement".format(loaded_model.category,args.implementation), "to_implementation")
+    # to_implementation(loaded_model, args.out_path, args.out_name, weight = 1.0, **unknown)
 
 if __name__ == '__main__':
     # sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference/SimpleCNN/SimpleCNN.onnx', '--feature_type', 'int', '--out_path', '/tmp/fastinference/SimpleCNN', '--out_name', 'model', '--implementation', 'cpp.binary']
+    sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//SimpleMLP/SimpleMLP.onnx', '--feature_type', 'int', '--out_path', '/tmp/fastinference//SimpleMLP', '--out_name', 'model', '--implementation', 'cpp.binary']
+
     print(sys.argv)
     main()
     # python3 -m fastinference --model /tmp/fastinference/nn/cpp/binary/SimpleMLP.onnx --feature_type int --implementation cpp.NHWC --out_path /tmp/fastinference/nn/cpp/binary/ --out_name "model"

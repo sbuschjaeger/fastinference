@@ -3,8 +3,9 @@ import os
 import json
 from json import JSONEncoder
 import numpy as np
+import copy
 
-from ..Util import NumpyEncoder
+from ..Util import NumpyEncoder, dynamic_import 
 #XXX: This class currently also takes care of all ensemble related loading/storing. This is okayish, but should not become more complicated. Otherweise we should put this into the Ensemble directly. However, then storing models becomes weird because we have to provide the out_pathes etc to to_dict method. Also circular dependencies can become an issue then
 
 
@@ -62,6 +63,24 @@ class Model():
 
         # The name of this model which is later used to generate the predict function, e.g. "RF_Large" leads to "predict_RF_Large"
         self.name = model_name
+
+    def optimize(self, optimizers, args):
+        if not isinstance(optimizers, list):
+            optimizers = [optimizers]
+
+        if args is None:
+            args = [{} for _ in optimizers]
+
+        args = [{} if a is None else a for a in args]
+
+        for opt, arg in zip(optimizers, args):
+            run_optimization = dynamic_import("optimizers.{}.{}".format(self.category,opt), "optimize")
+            self = run_optimization(self, **arg)
+
+    def implement(self, out_path, out_name, implementation_type, **kwargs):
+        to_implementation = dynamic_import("templates.{}.{}.implement".format(self.category,implementation_type), "to_implementation")
+        self_copy = copy.deepcopy(self)
+        to_implementation(self_copy, out_path, out_name, **kwargs)
 
     def to_dict(self):
         """Transforms this model into a dictionary format.

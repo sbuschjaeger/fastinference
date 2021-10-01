@@ -118,7 +118,6 @@ def render(
     )
 
     if infer_types:
-        # TODO We should not perform any changes on the layers directly to keep them separated
         if isinstance(layer, (Conv2D, Gemm)):
             layer.weight = simplify_array(layer.weight)
             layer.bias = simplify_array(layer.bias)
@@ -303,11 +302,6 @@ def render(
 
     return code_alloc, code_init, code_predict, output_type
 
-'''
-infer types vs fixed types
-    int_type -> binary_word_size (int_type and binary_word_size should / must match)
-    float_type
-'''
 def to_implementation(
         model, 
         out_path, 
@@ -327,8 +321,7 @@ def to_implementation(
         **kwargs
     ):
 
-    # TODO We should not perform any changes on the layers directly to keep them separated
-    model.optimize()
+    model.optimize(["remove_nodes", "merge_nodes"], None)
 
     code_init = ""
     code_alloc = ""
@@ -340,7 +333,6 @@ def to_implementation(
     for layer_id, layer in enumerate(model.layers):
         print("IMPLEMENTING {}".format(layer.name))
 
-        # TODO We should not perform any changes on the layers directly to keep them separated
         if isinstance(layer, Reshape) and len(layer.output_shape) > 2:
             layer.output_shape = (layer.output_shape[0], *layer.output_shape[2:], layer.output_shape[1])
 

@@ -104,24 +104,24 @@ class NeuralNet(Model):
         
         super().__init__(num_classes = n_classes, model_category = "neuralnet", model_name = model_name, model_accuracy = model_accuracy)
 
-    def optimize(self):
-        # If the last layer is a positive scale layer or a LogSoftmax layer just remove it
-        while( (isinstance(self.layers[-1], Mul) and not isinstance(self.layers[-1].scale, tuple) and self.layers[-1].scale[0] > 0) or isinstance(self.layers[-1], LogSoftmax) ):
-            self.layers.pop()
+    # def optimize(self):
+    #     # If the last layer is a positive scale layer or a LogSoftmax layer just remove it
+    #     while( (isinstance(self.layers[-1], Mul) and not isinstance(self.layers[-1].scale, tuple) and self.layers[-1].scale[0] > 0) or isinstance(self.layers[-1], LogSoftmax) ):
+    #         self.layers.pop()
 
-        # Merge BN + Step layers for BNNs
-        new_layers = []
-        last_layer = None
-        for layer_id, layer in enumerate(self.layers):
-            if last_layer is not None:
-                if isinstance(last_layer, BatchNorm) and isinstance(layer, Step):
-                    layer.threshold = -last_layer.bias / last_layer.scale
-                else:
-                    new_layers.append(last_layer)
-            last_layer = layer
+    #     # Merge BN + Step layers for BNNs
+    #     new_layers = []
+    #     last_layer = None
+    #     for layer_id, layer in enumerate(self.layers):
+    #         if last_layer is not None:
+    #             if isinstance(last_layer, BatchNorm) and isinstance(layer, Step):
+    #                 layer.threshold = -last_layer.bias / last_layer.scale
+    #             else:
+    #                 new_layers.append(last_layer)
+    #         last_layer = layer
             
-        new_layers.append(last_layer)
-        self.layers = new_layers
+    #     new_layers.append(last_layer)
+    #     self.layers = new_layers
 
     # def to_implementation(self, out_path, out_name, backend, weight = 1.0):
     #     """Generate neural network code
