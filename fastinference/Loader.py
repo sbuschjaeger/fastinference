@@ -40,9 +40,9 @@ def model_to_json(model, out_path, file_name = "model"):
         for i,(m,w) in enumerate(zip(model.models, model.weights)):
             d = {}
             d["weight"] = w
-            d["file"] = os.path.join(out_path, "{}_base_{}.json".format(file_name,i))
+            d["file"] = os.path.join(out_path, "{}_base_{}.json".format(model.name,i))
             models.append(d)
-            model_to_json(m, out_path, "{}_base_{}".format(file_name,i))
+            model_to_json(m, out_path, "{}_base_{}".format(model.name,i))
         data["models"] = models
     else:
         data = model.to_dict()

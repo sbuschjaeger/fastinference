@@ -2,8 +2,7 @@
 
 set -e
 
-# Only set for ensembles. Otherwise ignored.
-BASE_IMPLEMENTATION=""
+FIOPTIONS=""
 
 for i in "$@"
 do
@@ -22,10 +21,6 @@ case $i in
     ;;
     --modelname=*)
     MODELNAME="${i#*=}"
-    shift # past argument=value
-    ;;
-    --implementation=*)
-    IMPLEMENTATION="${i#*=}"
     shift # past argument=value
     ;;
     --nestimators=*)
@@ -48,12 +43,24 @@ case $i in
     NEXAMPLES="${i#*=}"
     shift # past argument=value
     ;;
-    --baseimplementation=*)
-    BASE_IMPLEMENTATION="${i#*=}"
-    shift # past argument=value
-    ;;
     --binarize=*)
     BINARIZE="${i#*=}"
+    shift # past argument=value
+    ;;
+    --implementation=*)
+    FIOPTIONS="${FIOPTIONS} --implementation ${i#*=}"
+    shift # past argument=value
+    ;;
+    --baseimplementation=*)
+    FIOPTIONS="${FIOPTIONS} --baseimplementation ${i#*=}"
+    shift # past argument=value
+    ;;
+    --optimize=*)
+    FIOPTIONS="${FIOPTIONS} --optimize ${i#*=}"
+    shift # past argument=value
+    ;;
+    --baseoptimize=*)
+    FIOPTIONS="${FIOPTIONS} --baseoptimize ${i#*=}"
     shift # past argument=value
     ;;
     *)
@@ -99,13 +106,13 @@ else
     FEATURE_TYPE="double"
 fi
 
-if [ -z "$BASE_IMPLEMENTATION" ]; then
-    python3 fastinference/main.py --model $OUTPATH/$MODELNAME.$ENDING --feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" --implementation $IMPLEMENTATION 
-    python3 ./tests/data/convert_data.py --file $OUTPATH/testing.csv --out $OUTPATH/testing.h --dtype $FEATURE_TYPE --ltype "unsigned int"
-else
-    python3 fastinference/main.py --model $OUTPATH/$MODELNAME.$ENDING --feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" --implementation $IMPLEMENTATION --base_implementation $BASE_IMPLEMENTATION
-    python3 ./tests/data/convert_data.py --file $OUTPATH/testing.csv --out $OUTPATH/testing.h --dtype $FEATURE_TYPE --ltype "unsigned int"
-fi
+python3 fastinference/main.py --model $OUTPATH/$MODELNAME.$ENDING --feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" $FIOPTIONS 
+python3 ./tests/data/convert_data.py --file $OUTPATH/testing.csv --out $OUTPATH/testing.h --dtype $FEATURE_TYPE --ltype "unsigned int"
+# if [ -z "$BASE_IMPLEMENTATION" ]; then
+# else
+#     python3 fastinference/main.py --model $OUTPATH/$MODELNAME.$ENDING --feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" --implementation $IMPLEMENTATION --base_implementation $BASE_IMPLEMENTATION
+#     python3 ./tests/data/convert_data.py --file $OUTPATH/testing.csv --out $OUTPATH/testing.h --dtype $FEATURE_TYPE --ltype "unsigned int"
+# fi
 
 cp ./tests/main.cpp $OUTPATH
 cp ./tests/CMakeLists.txt $OUTPATH

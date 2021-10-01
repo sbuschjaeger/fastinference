@@ -58,6 +58,17 @@ class Ensemble(Model):
 
         return model
 
+    def optimize(self, optimizers, args, base_optimizers, base_args):
+        super().optimize(optimizers, args)
+        for e in self.models:
+            e.optimize(base_optimizers, base_args)
+
+    def implement(self, out_path, out_name, implementation_type, base_implementation, **kwargs):
+        for m, w in zip(self.models, self.weights):
+            m.implement(out_path = out_path, out_name = m.name, weight = w, implementation_type = base_implementation, **kwargs)
+
+        super().implement(out_path, out_name, implementation_type, **kwargs)
+
     def to_dict(self):
         model_dict = super().to_dict()
 

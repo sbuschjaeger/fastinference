@@ -65,6 +65,9 @@ class Model():
         self.name = model_name
 
     def optimize(self, optimizers, args):
+        if optimizers is None:
+            return
+            
         if not isinstance(optimizers, list):
             optimizers = [optimizers]
 

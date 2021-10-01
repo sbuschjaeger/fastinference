@@ -18,10 +18,6 @@ def to_implementation(
     **kwargs
 ):
 
-    for e, w in zip(model.models, model.weights):
-        to_implementation = dynamic_import("templates.{}.{}.implement".format(e.category,base_implementation), "to_implementation")
-        to_implementation(e, out_path = out_path, out_name = e.name, weight = w, feature_type = feature_type, namespace = namespace, label_type = label_type, internal_type = internal_type, **kwargs)
-
     env = Environment(
         loader=FileSystemLoader(os.path.join(os.path.dirname(os.path.abspath(__file__)))),
         trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True
