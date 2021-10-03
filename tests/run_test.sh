@@ -72,34 +72,33 @@ done
 OUTPATH=$OUTPATH/$MODELNAME
 
 mkdir -p $OUTPATH
-if [ "$TYPE" = "cnn" ]; then
-    if [ "$BINARIZE" == "on" ]; then
-        python3 tests/data/generate_mnist.py --out $OUTPATH
-    else
-        python3 tests/data/generate_mnist.py --out $OUTPATH --float
-    fi
-else
-    if [ "$BINARIZE" == "on" ]; then
-        python3 tests/data/generate_data.py --out $OUTPATH --nclasses $NCLASSES --nfeatures $NFEATURES --difficulty $DIFFICULTY --nexamples $NEXAMPLES
-    else
-        python3 tests/data/generate_data.py --out $OUTPATH --nclasses $NCLASSES --nfeatures $NFEATURES --difficulty $DIFFICULTY --nexamples $NEXAMPLES --float
-    fi
-fi
+# if [ "$TYPE" = "cnn" ]; then
+#     if [ "$BINARIZE" == "on" ]; then
+#         python3 tests/data/generate_mnist.py --out $OUTPATH
+#     else
+#         python3 tests/data/generate_mnist.py --out $OUTPATH --float
+#     fi
+# else
+#     if [ "$BINARIZE" == "on" ]; then
+#         python3 tests/data/generate_data.py --out $OUTPATH --nclasses $NCLASSES --nfeatures $NFEATURES --difficulty $DIFFICULTY --nexamples $NEXAMPLES
+#     else
+#         python3 tests/data/generate_data.py --out $OUTPATH --nclasses $NCLASSES --nfeatures $NFEATURES --difficulty $DIFFICULTY --nexamples $NEXAMPLES --float
+#     fi
+# fi
 
-if [ "$TYPE" = "mlp" ] || [ "$TYPE" = "cnn" ]; then
-    if [ "$BINARIZE" == "on" ]; then
-        python3 tests/train_$TYPE.py --training $OUTPATH/training.csv --testing $OUTPATH/testing.csv --out $OUTPATH --name $MODELNAME --binarize
-    else
-        python3 tests/train_$TYPE.py --training $OUTPATH/training.csv --testing $OUTPATH/testing.csv --out $OUTPATH --name $MODELNAME 
-    fi
-    ENDING="onnx"
-else
-    python3 tests/train_$TYPE.py --training $OUTPATH/training.csv --testing $OUTPATH/testing.csv --out $OUTPATH --name $MODELNAME  --nestimators $NESTIMATORS 
-    ENDING="json"
-fi
+# if [ "$TYPE" = "mlp" ] || [ "$TYPE" = "cnn" ]; then
+#     if [ "$BINARIZE" == "on" ]; then
+#         python3 tests/train_$TYPE.py --training $OUTPATH/training.csv --testing $OUTPATH/testing.csv --out $OUTPATH --name $MODELNAME --binarize
+#     else
+#         python3 tests/train_$TYPE.py --training $OUTPATH/training.csv --testing $OUTPATH/testing.csv --out $OUTPATH --name $MODELNAME 
+#     fi
+#     ENDING="onnx"
+# else
+#     python3 tests/train_$TYPE.py --training $OUTPATH/training.csv --testing $OUTPATH/testing.csv --out $OUTPATH --name $MODELNAME  --nestimators $NESTIMATORS 
+#     ENDING="json"
+# fi
 
-# ENDING="onnx"
-
+ENDING="onnx"
 if [ "$BINARIZE" == "on" ]; then
     FEATURE_TYPE="int"
 else
@@ -108,11 +107,6 @@ fi
 
 python3 fastinference/main.py --model $OUTPATH/$MODELNAME.$ENDING --feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" $FIOPTIONS 
 python3 ./tests/data/convert_data.py --file $OUTPATH/testing.csv --out $OUTPATH/testing.h --dtype $FEATURE_TYPE --ltype "unsigned int"
-# if [ -z "$BASE_IMPLEMENTATION" ]; then
-# else
-#     python3 fastinference/main.py --model $OUTPATH/$MODELNAME.$ENDING --feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" --implementation $IMPLEMENTATION --base_implementation $BASE_IMPLEMENTATION
-#     python3 ./tests/data/convert_data.py --file $OUTPATH/testing.csv --out $OUTPATH/testing.h --dtype $FEATURE_TYPE --ltype "unsigned int"
-# fi
 
 cp ./tests/main.cpp $OUTPATH
 cp ./tests/CMakeLists.txt $OUTPATH

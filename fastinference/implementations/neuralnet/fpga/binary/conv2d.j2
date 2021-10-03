@@ -1,0 +1,46 @@
+{#
+ # Binary Convolution
+ #}
+
+// Layer {{ layer_id }}: Conv
+{% if layer.pads == [0, 0, 0, 0] %}
+for (int h = 0; h < {{ layer.output_shape[2] }}; h++) {
+  for (int w = 0; w < {{ layer.output_shape[3] }}; w++) {
+    for (int m = 0; m < {{ layer.output_shape[1] }}; m++) {
+      layer_{{ layer_id }}_output[h][w][m] = layer_{{ layer_id }}_bias[m];
+    }
+    for (int kH = 0; kH < {{ layer.kernel_shape[2] }}; kH++) {
+      for (int kW = 0; kW < {{ layer.kernel_shape[3] }}; kW++) {
+        for (int m = 0; m < {{ layer.output_shape[1] }}; m++) {
+          for (int c = 0; c < {{ (layer.input_shape[1] / binary_word_size)|round(method='ceil')|int }}; c++) {
+            layer_{{ layer_id }}_output[h][w][m] += 2 * {{ popcount }}(({{ uint_type }})~({{ uint_type }})(layer_{{ layer_id }}_weight[kH][kW][m][c] ^ layer_{{ layer_id - 1 }}_output[h * {{ layer.strides[0] }} + kH - {{ layer.pads[0] }}][w * {{ layer.strides[1] }} + kW - {{ layer.pads[1] }}][c])) - {{ binary_word_size }};
+          }
+        }
+      }
+    }
+  }
+}
+{% else %}
+for (int h = 0; h < {{ layer.output_shape[2] }}; h++) {
+  for (int w = 0; w < {{ layer.output_shape[3] }}; w++) {
+    for (int m = 0; m < {{ layer.output_shape[1] }}; m++) {
+      layer_{{ layer_id }}_output[h][w][m] = layer_{{ layer_id }}_bias[m];
+    }
+    for (int kH = 0; kH < {{ layer.kernel_shape[2] }}; kH++) {
+      int iH = h * {{ layer.strides[0] }} + kH - {{ layer.pads[0] }};
+      if (iH >= 0 && iH < {{ layer.input_shape[2] }}) {
+        for (int kW = 0; kW < {{ layer.kernel_shape[3] }}; kW++) {
+          int iW = w * {{ layer.strides[1] }} + kW - {{ layer.pads[1] }};
+          if (iW >= 0 && iW < {{ layer.input_shape[3] }}) {
+            for (int m = 0; m < {{ layer.output_shape[1] }}; m++) {
+              for (int c = 0; c < {{ (layer.input_shape[1] / binary_word_size)|round(method='ceil')|int }}; c++) {
+                layer_{{ layer_id }}_output[h][w][m] += 2 * {{ popcount }}(({{ uint_type }})~({{ uint_type }})(layer_{{ layer_id }}_weight[kH][kW][m][c] ^ layer_{{ layer_id - 1 }}_output[iH][iW][c])) - {{ binary_word_size }};
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+{% endif %}

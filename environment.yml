@@ -1,0 +1,22 @@
+name: fi
+channels:
+  - pytorch
+  # - conda-forge
+  - defaults
+dependencies:
+  - cmake
+  - python 
+  - onnx
+  - jinja2
+  - scikit-learn
+  - numpy
+  - pytorch 
+  - torchvision 
+  - torchaudio 
+  - cudatoolkit=10.2
+  - pip
+  - pip:
+    - cvxpy
+    - onnxruntime 
+    - pip install git+https://github.com/sbuschjaeger/PyPruning.git
+    - -e file:. 

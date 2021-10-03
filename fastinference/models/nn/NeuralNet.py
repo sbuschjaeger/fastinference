@@ -1,3 +1,8 @@
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OMP_WAIT_POLICY"] = "PASSIVE"
+import onnxruntime
+
 from itertools import islice
 import logging, os
 from math import ceil
@@ -18,6 +23,19 @@ from ..Model import Model
 import fastinference.Util #import simplify_array, to_c_data_type, get_tensor_shape, get_initializer, get_attribute, get_constant
 
 def layer_from_node(graph, node, input_shape):
+    """Constructs the appropriate layer from the given graph and node.
+
+    Args:
+        graph: The onnx graph.
+        node: The current node.
+        input_shape (tuple): The input shape of the current node
+
+    Raises:
+        NotImplementedError: Throws an error if there is no implementation for the current node available.
+
+    Returns:
+        Layer: The newly constructed layer. 
+    """
     if node.op_type == 'Conv':  # Convolution
         return Conv2D(graph, node, input_shape)
     elif node.op_type == 'BatchNormalization':
@@ -44,27 +62,45 @@ def layer_from_node(graph, node, input_shape):
         raise NotImplementedError("Warning: Layer {} is currently not implemented".format(node.op_type))
 
 class NeuralNet(Model):
-    """A neural network model
+    """A (simplified) neural network model. This class currently supports feed-forward multi-layer perceptrons as well as feed-forward convnets. In detail the following operations are supported
+        
+        - Linear Layer
+        - Convolutional Layer
+        - Sigmoid Activation
+        - ReLU Activation
+        - LeakyRelu Activation
+        - MaxPool
+        - AveragePool
+        - LogSoftmax
+        - LogSoftmax
+        - Multiplication with a constant (Mul)
+        - Reshape
+        - BatchNormalization
+    
+    All layers are stored in :code:`self.layer` which is already order for execution. Additionally, the original onnx_model is stored in :code:`self.onnx_model`.
 
-    From the ONNX graph an internal model is constructed by iterating all layers.
-    Greater/Less + Where is converted to a Step Layer. The Step Layer is merged with a subsequent
-    BatchNormalization layer. Squeeze and Unsqueeze Layers are removed when the last dimension of
-    the inbetween Layer has size 1 (as in PyTorch 2D BatchNormalization).
+    This class loads ONNX files to build the internal computation graph. This can sometimes become a little tricky since the ONNX exporter work differently for each framework / version. In PyToch we usually use 
 
-    Args:
-        onnx_neural_net: The ONNX file name
+    .. code-block:: python
 
-    Attributes:
-        name: The unique name of the graph for ensembles
-        layers (list): The list of the layers assembling the network from input to output layer
+        dummy_x = torch.randn(1, x_train.shape[1], requires_grad=False)
+        torch.onnx.export(model, dummy_x, os.path.join(out_path,name), training=torch.onnx.TrainingMode.PRESERVE, export_params=True,opset_version=11, do_constant_folding=True, input_names = ['input'],  output_names = ['output'], dynamic_axes={'input' : {0 : 'batch_size'},'output' : {0 : 'batch_size'}})
+
+    **Important**: This class automatically merges "Constant -> Greater -> Constant -> Constant -> Where" operations into a single step layer. This is specifically designed to parse Binarized Neural Networks, but might be wrong for some types of networks. 
     """
-    def __init__(self, onnx_neural_net, model_accuracy = None, model_name = "model"):
+    def __init__(self, path_to_onnx, accuracy = None, name = "model"):
+        """Constructor of NeuralNet.
+
+        Args:
+            onnx_neural_net (str): Path to the onnx file.
+            accuracy (float, optional): The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.
+            name (str, optional): The name of this model. Defaults to "Model".
+        """
         self.layers = []
 
-        model = load(onnx_neural_net)
-        checker.check_model(model)
-        model = shape_inference.infer_shapes(model)
-        graph = model.graph
+        self.onnx_model = load(path_to_onnx)
+        checker.check_model(self.onnx_model)
+        graph = shape_inference.infer_shapes(self.onnx_model).graph
 
         # Add implicit dimension for number of examples. We only consider single-example inference at the moment.
         input_shape = (1, graph.input[0].type.tensor_type.shape.dim[1].dim_value)
@@ -102,130 +138,25 @@ class NeuralNet(Model):
             print("")
             input_shape = layer.output_shape
         
-        super().__init__(num_classes = n_classes, model_category = "neuralnet", model_name = model_name, model_accuracy = model_accuracy)
+        super().__init__(num_classes = n_classes, category = "neuralnet", name = name, accuracy = accuracy)
 
-    # def optimize(self):
-    #     # If the last layer is a positive scale layer or a LogSoftmax layer just remove it
-    #     while( (isinstance(self.layers[-1], Mul) and not isinstance(self.layers[-1].scale, tuple) and self.layers[-1].scale[0] > 0) or isinstance(self.layers[-1], LogSoftmax) ):
-    #         self.layers.pop()
+    def predict_proba(self,X):
+        """Applies this NeuralNet to the given data and provides the predicted probabilities for each example in X. This function internally calls :code:`onnxruntime.InferenceSession` for inference.. 
 
-    #     # Merge BN + Step layers for BNNs
-    #     new_layers = []
-    #     last_layer = None
-    #     for layer_id, layer in enumerate(self.layers):
-    #         if last_layer is not None:
-    #             if isinstance(last_layer, BatchNorm) and isinstance(layer, Step):
-    #                 layer.threshold = -last_layer.bias / last_layer.scale
-    #             else:
-    #                 new_layers.append(last_layer)
-    #         last_layer = layer
-            
-    #     new_layers.append(last_layer)
-    #     self.layers = new_layers
+        Args:
+            X (numpy.array): A (N,d) matrix where N is the number of data points and d is the feature dimension. If X has only one dimension then a single example is assumed and X is reshaped via :code:`X = X.reshape(1,X.shape[0])`
 
-    # def to_implementation(self, out_path, out_name, backend, weight = 1.0):
-    #     """Generate neural network code
-
-    #     For each layer in the model, the render function is called to generate the C code.
-    #     The code is generated in three parts (initialization, allocation, prediction).
-    #     The code is stored to the attributes self.code_static (init + alloc), self.code_predict
-    #     and self.includes. Before code generation, the neural network model is optimized.
-
-    #     - The weights are quantized if backend['quantize'] is specified. This will
-    #       invoke a clustering and assign each weight their cluster center.
-    #     - The weights are simplified if backend['simplify_weights'] is True.
-    #       They are converted to the lowest possible data type without losing precision.
-    #     - Binary operations are used if backend['binary'] is specified. If it is True,
-    #       the binary word size is inferred automatically from the model. Otherwise it
-    #       is set to the specified value. Binary operations only allow for weights -1 and 1.
-    #     - The memory layout might deviate form the standard specification to optimize
-    #       inference time.
-
-    #     Args:
-    #         backend: The backend
-    #         weight: The weight of the model in an ensemble
-    #     """
-    #     input_type = backend.feature_type
-
-    #     # The code is generated in three parts and joined later to avoid multiple loops over the graph
-    #     code_init = ''  # The C code containing initialized variables, i.e. weights and biases
-    #     code_alloc = ''  # The C code allocating necessary variables, i.e. layer outputs
-    #     code_predict = ''  # The C code containing the predict function
-
-    #     #print("GENERATING CODE NOW!")
-    #     last_flatten = None
-    #     for layer_id, layer in enumerate(self.layers):
-    #         # Flatten layer puts output in NHWC layout in wrong order for efficiency
-    #         # Just put weights until next Gemm Layer in wrong order, too!
-    #         if backend.implementation_type == 'NHWC' and isinstance(layer, Flatten):
-    #             last_flatten = layer
-    #         if last_flatten:
-    #             if isinstance(layer, BatchNormalization):
-    #                 layer.scale = np.moveaxis(layer.scale.reshape(last_flatten.input_shape), -3, -1).reshape(last_flatten.output_shape)
-    #                 layer.bias = np.moveaxis(layer.bias.reshape(last_flatten.input_shape), -3, -1).reshape(last_flatten.output_shape)
-    #             if isinstance(layer, Step) and isinstance(layer.threshold, np.ndarray):
-    #                 layer.threshold = np.moveaxis(layer.threshold.reshape(last_flatten.input_shape), -3, -1).reshape(last_flatten.output_shape)
-    #             if isinstance(layer, Gemm):
-    #                 layer.weight = np.moveaxis(layer.weight.reshape([layer.weight.shape[0]] + list(last_flatten.input_shape)),-3,-1).reshape(layer.weight.shape)
-    #                 last_flatten = None
-
-    #         output_type = layer.output_type(input_type, backend)
-    #         logging.info('Output type of layer {}: \t{}'.format(layer.__class__.__name__, output_type))
-
-    #         i, a, p = layer.render(
-    #             backend = backend, 
-    #             layer_id=layer_id + 1, 
-    #             input_type=input_type,
-    #             output_type=to_c_data_type(output_type, backend)
-    #         )
-    #         code_init, code_alloc, code_predict = code_init + i, code_alloc + a, code_predict + p
-    #         input_type = output_type
-
-    #     input_shape = self.layers[0].input_shape
-    #     output_shape = self.layers[-1].output_shape[1:]
-
-    #     code_static = code_init + '\n' + code_alloc
-    #     code_predict = Layer.render(
-    #         'predict', 
-    #         model_name = self.name, 
-    #         model_weight = weight, 
-    #         in_layer_id = 0,
-    #         out_layer_id = len(self.layers),
-    #         input_shape = input_shape,
-    #         output_shape = output_shape,
-    #         code_predict = code_predict, 
-    #         backend = backend
-    #     )
-    #     includes = Layer.render('includes', backend = backend)
+        Returns:
+            numpy.array: A (N, c) prediction matrix where N is the number of data points and c is the number of classes
+        """
+        if len(X.shape) == 1:
+            X = X.reshape(1,X.shape[0])
         
-    #     implementation = env.get_template(os.path.join(backend.language ,"base.j2")).render(
-    #         model = self,
-    #         backend = backend, 
-    #         includes = includes,
-    #         code_predict = code_predict, 
-    #         code_static = code_static
-    #     )
-
-    #     header = env.get_template(os.path.join(backend.language ,"header.j2")).render(
-    #         model = self,
-    #         backend = backend, 
-    #         includes = includes,
-    #         code_predict = code_predict, 
-    #         code_static = code_static
-    #     )
-
-    #     if backend.language == "cpp":
-    #         iext = "cpp"
-    #         hext = "h"
-    #     else:
-    #         iext = ""
-    #         hext = ""
-
-    #     with open(os.path.join(out_path, "{}.{}".format(out_name,iext) ), 'w') as out_file:
-    #         out_file.write(implementation)
+        opts = onnxruntime.SessionOptions()
+        opts.intra_op_num_threads = 1
+        opts.inter_op_num_threads = 1
+        opts.execution_mode = onnxruntime.ExecutionMode.ORT_SEQUENTIAL
+        session = onnxruntime.InferenceSession(self.onnx_model, sess_options=opts)
+        input_name = session.get_inputs()[0].name 
+        return session.run([], {input_name: X})
     
-    #     with open(os.path.join(out_path, "{}.{}".format(out_name,hext)), 'w') as out_file:
-    #         out_file.write(header)
-    
-    def to_json_file(self):
-        return self.path_name

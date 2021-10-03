@@ -42,7 +42,7 @@ class Model():
         - accuracy: Optional reference accuracy
         - model: The loaded model
     """
-    def __init__(self, num_classes, model_category, model_accuracy = None, model_name = "Model"):
+    def __init__(self, num_classes, category, accuracy = None, name = "Model"):
         """Generate a new Model.
 
         Args:
@@ -55,19 +55,19 @@ class Model():
         # If this is not set, this is not a valid model! 
         # The category, e.g. `linear`, `tree`, `ensemble` or `neuralnet` is used during code generation to load the appropriate templates. 
         self.num_classes = num_classes
-        self.category = model_category
+        self.category = category
         self.model = None
 
         # An optional reference accuracy for later checking of stuff
-        self.accuracy = model_accuracy
+        self.accuracy = accuracy
 
         # The name of this model which is later used to generate the predict function, e.g. "RF_Large" leads to "predict_RF_Large"
-        self.name = model_name
+        self.name = name
 
     def optimize(self, optimizers, args):
         if optimizers is None:
             return
-            
+
         if not isinstance(optimizers, list):
             optimizers = [optimizers]
 
@@ -80,8 +80,19 @@ class Model():
             run_optimization = dynamic_import("optimizers.{}.{}".format(self.category,opt), "optimize")
             self = run_optimization(self, **arg)
 
+    def predict(self, X):
+        """[summary]
+
+        Args:
+            X ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        return self.predict_proba(X).argmax(axis=1)
+
     def implement(self, out_path, out_name, implementation_type, **kwargs):
-        to_implementation = dynamic_import("templates.{}.{}.implement".format(self.category,implementation_type), "to_implementation")
+        to_implementation = dynamic_import("implementations.{}.{}.implement".format(self.category,implementation_type), "to_implementation")
         self_copy = copy.deepcopy(self)
         to_implementation(self_copy, out_path, out_name, **kwargs)
 

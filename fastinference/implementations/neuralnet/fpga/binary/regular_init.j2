@@ -1,0 +1,4 @@
+{#
+ # Initialization
+ #}
+static constexpr {{ data_type }} layer_{{ layer_id }}_{{ name }}[{{ shape|join('][') }}] = {{ value|replace('[', '{')|replace(']', '}') }};

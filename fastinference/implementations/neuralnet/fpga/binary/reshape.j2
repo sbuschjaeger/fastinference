@@ -1,0 +1,10 @@
+{#
+ # Reshape
+ #}
+
+// Layer {{ layer_id }}: Reshape
+{% if layer.output_shape|length > 2 %}
+auto layer_{{ layer_id }}_output = ({{ input_type }} (*)[{{ layer.output_shape[2:]|join('][') }}]) layer_{{ layer_id - 1 }}_output;
+{% else %}
+auto layer_{{ layer_id }}_output = ({{ input_type }} (*)) layer_{{ layer_id - 1 }}_output;
+{% endif %}

@@ -1,0 +1,18 @@
+{% if lut[1] == 1 %}
+ap_uint<{{lut_elem_size|int}}> lut{{m}}bit[{{2**m}}] = {0{% for i in lut %},{{i}}{% endfor %}};
+
+ap_uint<{{n|int}}> count_setbits(ap_uint<{{n}}> n){
+    #pragma HLS INTERFACE ap_ctrl_none port=return
+    #pragma HLS PIPELINE
+    return lut{{m}}bit[(n>>(0))&0x0{{'%0x' % (2**m-1)|int}}] {% for i in range(((n/m)-1)|int) %} + lut{{m}}bit[(n>>({{(loop.index)*m}}))&0x0{{'%0x' % (2**m-1)|int}}] {% endfor %};
+}
+{% else %}
+ap_uint<{{n|int}}> count_setbits(ap_uint<{{n}}> n){
+    ap_uint<{{n|int}}> c = 0;
+    for(int i = 0; i<{{n}};i++){
+        n=n>>1;
+        c += (n&1);
+    }
+    return c;
+}
+{% endif %}

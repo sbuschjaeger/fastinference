@@ -71,7 +71,7 @@ def model_from_file(file_path):
         else:
             data = {}
 
-        loaded_model = NeuralNet(file_path, model_name = data.get("name", "model"), model_accuracy = data.get("accuracy", None))
+        loaded_model = NeuralNet(file_path, name = data.get("name", "model"), accuracy = data.get("accuracy", None))
     else:
         if os.path.isfile( file_path ):
             with open(file_path) as f:

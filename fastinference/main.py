@@ -27,6 +27,13 @@ def parse_unknown(unknown):
             cur_key = u[2:]
             d[cur_key] = []
         else:
+            try:
+                if u.isdigit():
+                    u = int(u)
+                else:
+                    u = float(u)
+            except ValueError:
+                pass
             d[cur_key].append(u)
     
     # Flatten the dictionary appropriatly
@@ -98,7 +105,7 @@ def main():
 if __name__ == '__main__':
     # sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference/SimpleCNN/SimpleCNN.onnx', '--feature_type', 'int', '--out_path', '/tmp/fastinference/SimpleCNN', '--out_name', 'model', '--implementation', 'cpp.binary']
     # sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//SimpleMLP/SimpleMLP.onnx', '--feature_type', 'int', '--out_path', '/tmp/fastinference//SimpleMLP', '--out_name', 'model', '--implementation', 'cpp.binary']
-
+    # sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//SimpleMLP/SimpleMLP.onnx', '--feature_type', 'double', '--out_path', '/tmp/fastinference//SimpleMLP', '--out_name', 'model', '--implementation', 'fpga.binary']
     print(sys.argv)
     main()
     # python3 -m fastinference --model /tmp/fastinference/nn/cpp/binary/SimpleMLP.onnx --feature_type int --implementation cpp.NHWC --out_path /tmp/fastinference/nn/cpp/binary/ --out_name "model"

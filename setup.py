@@ -13,7 +13,8 @@ setup(name='fastinference',
       zip_safe=False,
       install_requires = [
       "jinja2",
-      "onnx"
-      #"python" 
+      "onnx",
+      "onnxruntime",
+      "PyPruning @ git+ssh://git@github.com/sbuschjaeger/PyPruning.git"
     ]
 )
