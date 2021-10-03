@@ -15,6 +15,6 @@ setup(name='fastinference',
       "jinja2",
       "onnx",
       "onnxruntime",
-      "PyPruning @ git+ssh://git@github.com/sbuschjaeger/PyPruning.git"
+      "PyPruning @ git+https://git@github.com/sbuschjaeger/PyPruning.git"
     ]
 )
