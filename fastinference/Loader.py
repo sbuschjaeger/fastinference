@@ -51,13 +51,14 @@ def model_to_json(model, out_path, file_name = "model"):
         json.dump(data, outfile, cls=NumpyEncoder)
 
 def model_from_dict(data):
-    if data["category"] == "linear":
+    category = data.pop("category")
+    if category == "linear":
         loaded_model = Linear.from_dict(data)
-    elif data["category"] == "ensemble":
+    elif category == "ensemble":
         loaded_model = fastinference.models.Ensemble.Ensemble.from_dict(data)
-    elif data["category"] == "tree":
+    elif category == "tree":
         loaded_model = Tree.from_dict(data)
-    elif data["category"] == "discriminant":
+    elif category == "discriminant":
         loaded_model = DiscriminantAnalysis.from_dict(data)
         
     return loaded_model
