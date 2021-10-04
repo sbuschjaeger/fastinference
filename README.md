@@ -89,6 +89,6 @@ There is a CI/CD pipeline running which tests the current code and uses `tests/r
 - Buschjäger, Sebastian, et al. "On-Site Gamma-Hadron Separation with Deep Learning on FPGAs." ECML/PKDD (4). 2020. (https://link.springer.com/chapter/10.1007/978-3-030-67667-4_29)
 
 # Acknowledgements
-The software is written and maintained by `Sebastian Buschjäger <https://sbuschjaeger.github.io/>`_ as part of his work at the `Chair for Artificial Intelligence <https://www-ai.cs.tu-dortmund.de>`_ |ls8| at the TU Dortmund University and the `Collaborative Research Center 876 <https://sfb876.tu-dortmund.de>`_ |sfb|. If you have any question feel free to contact me under sebastian.buschjaeger@tu-dortmund.de.
+The software is written and maintained by [Sebastian Buschjäger](https://sbuschjaeger.github.io/) as part of his work at the [Chair for Artificial Intelligence](https://www-ai.cs.tu-dortmund.de)at the TU Dortmund University and the [Collaborative Research Center 876](https://sfb876.tu-dortmund.de>). If you have any question feel free to contact me under sebastian.buschjaeger@tu-dortmund.de.
 
-Special thanks goes to `Maik Schmidt <maik.schmidt@tu-dortmund.de>`_ and `Andreas Buehner <andreas.buehner@tu-dortmund.de>`_ who provided parts of this implementation during their time at the TU Dortmund University. 
+Special thanks goes to [Maik Schmidt](maik.schmidt@tu-dortmund.de>) and [Andreas Buehner](andreas.buehner@tu-dortmund.de) who provided parts of this implementation during their time at the TU Dortmund University. 
