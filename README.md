@@ -3,13 +3,13 @@
 [![Building docs](https://github.com/sbuschjaeger/fastinference/actions/workflows/docs.yml/badge.svg)](https://github.com/sbuschjaeger/fastinference/actions/workflows/docs.yml)
 [![Running tests](https://github.com/sbuschjaeger/fastinference/actions/workflows/tests.yml/badge.svg)](https://github.com/sbuschjaeger/fastinference/actions/workflows/tests.yml)
 
-Fastinference is a machine learning model optimizer and model compiler that generates the optimal implementation for your model and hardware architecture. It encapsulates many classical ML algorithms such as Decision Trees or Random Forests as well as modern Deep Learning architectures. It is easily extensible and also offers more obscure models such as [Binarized Neural Networks](). In Fastinference 
+Fastinference is a machine learning model optimizer and model compiler that generates the optimal implementation for your model and hardware architecture. It encapsulates many classical ML algorithms such as Decision Trees or Random Forests as well as modern Deep Learning architectures. It is easily extensible and also offers more obscure models such as [Binarized Neural Networks](https://sbuschjaeger.github.io/fastinference/html/neuralnet.html). In Fastinference 
 
 - **The user comes first:** We believe that the user know best what implementation and what type of optimizations should be performed. Hence, we generate *readable* code so that the user can adapt and change the implementation if necessary. 
 - **Optimizations and implementations are separated.** Fastinference distinguishes between model optimizations and model implementation. You can combine different optimizations freely with different implementations and vice-versa,
 - **Rapid prototyping is key** You can easily add your own implementation while benefiting from all optimizations performed on the model and vice-versa. 
 
-Fastinference is currently targeted to small, embedded systems as well as FPGAs, but we are always open to expand it use. For more details please see the [documentation]().
+Fastinference is currently targeted to small, embedded systems as well as FPGAs, but we are always open to expand it use. For more details please see the [documentation](https://sbuschjaeger.github.io/fastinference/html/index.html).
 
 # How to install
 
