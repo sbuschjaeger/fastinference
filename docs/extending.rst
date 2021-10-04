@@ -74,3 +74,18 @@ Once the model is implemented you need to provide methods for loading and storin
 - :code:`Loader.model_to_json` for storing a new model into a JSON file
 
 In order to load the model you will have to adapt :code:`Loader.model_from_file`. If your model does not really fit into a JSON format or comes with its own format (e.g. as for neural networks and the ONNX format) then you can ignore :code:`Loader.model_to_json`. However, we try to keep these loading / storing functions as consistent as possible so try to provide both if possible.
+
+
+Testing your implementation / optimization
+------------------------------------------
+
+Training a model, generating the code and finally compiling it can be a cumbersome endeavor if you want to debug / test your implementation. We offer some scripts which help during development
+
+- :code:`environment.yml`: A anaconda environment file which we use during development.
+- :code:`tests/generate_data.py`: A script to generate some random test and training data.
+- :code:`tests/train_{linear,discriminant,tree,mlp,cnn}.py`: A script to train the respective classifier or an ensemble of those. 
+- :code:`tests/convert_data.py`: A script to convert the test data into a static header file for the c++ implementations.
+- :code:`tests/main.cpp`: The main.cpp file when testing c++ implementations.
+- :code:`tests/CMakeLists.txt`: The CMakeLists when testing c++ implementations.
+
+A complete example of the entire workflow can be found in `run_tests.sh <https://github.com/sbuschjaeger/fastinference/blob/main/tests/run_test.sh>`_ and we try to maintain a CI/CD pipeline under `tests.yml <https://github.com/sbuschjaeger/fastinference/blob/main/.github/workflows/tests.yml>`_. Please check this file for the latest test configurations.
