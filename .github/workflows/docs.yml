@@ -6,12 +6,11 @@ on:
 jobs:
   test-cpp:
     runs-on: ubuntu-latest
-    #container: pytorchlightning/pytorch_lightning
+    container: pytorchlightning/pytorch_lightning
     name: Generate docs
-    #shell: bash -l {0}
-    defaults:
-      run:
-        shell: bash -l {0}
+    # defaults:
+    #   run:
+    #     shell: bash -l {0}
     steps:
       - uses: actions/checkout@v2
         with:
