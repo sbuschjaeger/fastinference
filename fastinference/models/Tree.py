@@ -181,7 +181,7 @@ class Tree(Model):
         Returns:
             Tree: The newly generated tree.
         """
-        tree = Tree(data["num_classes"], data["category"], data.get("accuracy", None), data.get("name", "Model"))
+        tree = Tree(data["num_classes"], data.get("accuracy", None), data.get("name", "Model"))
         tree.nodes = []
 
         nodes = [Node()]

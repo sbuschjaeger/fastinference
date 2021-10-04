@@ -37,7 +37,7 @@ class Ensemble(Model):
             Ensemble: The newly generated ensemble.
         """
 
-        model = Ensemble(len(set(sk_model.classes_)), "ensemble", accuracy, name)
+        model = Ensemble(len(set(sk_model.classes_)), accuracy, name)
          
         if isinstance(sk_model, (BaggingClassifier, RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor)):
             #obj.category = "ensemble"
@@ -76,7 +76,7 @@ class Ensemble(Model):
         Returns:
             Ensemble: The newly generated ensemble.
         """
-        model = Ensemble(data["num_classes"], data["category"], data.get("accuracy", None), data.get("name", "Model"))
+        model = Ensemble(data["num_classes"], data.get("accuracy", None), data.get("name", "Model"))
         #obj = super().from_dict(data)
 
         for entry in data["models"]:

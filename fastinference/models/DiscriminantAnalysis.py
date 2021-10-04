@@ -59,7 +59,7 @@ class DiscriminantAnalysis(Model):
         Returns:
             DiscriminantAnalysis: The newly generated DiscriminantAnalysis classifier.
         """
-        obj = DiscriminantAnalysis(data["num_classes"], data["category"], data.get("accuracy", None), data.get("name", "Model"))
+        obj = DiscriminantAnalysis(data["num_classes"],data.get("accuracy", None), data.get("name", "Model"))
 
         obj.means = data["means"] 
         obj.log_priors = data["log_priors"] 

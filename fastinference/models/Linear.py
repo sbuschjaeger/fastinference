@@ -52,7 +52,7 @@ class Linear(Model):
         Returns:
             Tree: The newly generated linear model.
         """
-        model = Linear(data["num_classes"], data["category"], data.get("accuracy", None), data.get("name", "Model"))
+        model = Linear(data["num_classes"], data.get("accuracy", None), data.get("name", "Model"))
         model.intercept = data["intercept"]
         model.coef = data["coeff"]
         return model
