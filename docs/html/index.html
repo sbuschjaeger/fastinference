@@ -18,7 +18,8 @@
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Models" href="models.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -37,13 +38,13 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Fastinference</a></li>
-<li><a class="reference internal" href="#acknowledgements">Acknowledgements</a></li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Fastinference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementations.html">Implementations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending.html">Extending fastinference</a></li>
 </ul>
-</div>
+
         </div>
       </div>
     </nav>
@@ -72,6 +73,82 @@
 <h1>Fastinference<a class="headerlink" href="#fastinference" title="Permalink to this headline"></a></h1>
 <div class="toctree-wrapper compound">
 </div>
+<p>Fastinference is a machine learning model optimizer and model compiler that generates the optimal implementation for your model and hardware architecture:</p>
+<p><strong>In Fastinference the user comes first.</strong> We believe that the user know best what implementation and what type of optimizations should be performed. Hence, we generate <em>readable</em> code so that the user can adapt and change the implementation if necessary.</p>
+<p><strong>In Fastinference optimizations and implementations can be freely combined.</strong> Fastinference distinguishes between optimizations for specific models which are independent from the implementation and specific types of implementations. Consider for example a simple decision tree, then the pruning of the model does not affect its implementation and vice-versa.</p>
+<p><strong>Fastinference can be easily extended.</strong> You can easily add your own implementation while benefiting from all optimizations performed on the model and vice-versa.</p>
+</section>
+<section id="how-to-install">
+<h1>How to install<a class="headerlink" href="#how-to-install" title="Permalink to this headline"></a></h1>
+<p>You can install this package via pip from git</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">sbuschjaeger</span><span class="o">/</span><span class="n">fastinference</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>If you have trouble with dependencies you can try setting up a conda environment which I use for development:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">sbuschjaeger</span><span class="o">/</span><span class="n">fastinference</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">fastinference</span>
+<span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">environment</span><span class="o">.</span><span class="n">yml</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">fi</span>
+</pre></div>
+</div>
+<p>Please note that this environment also contains some larger packages such as PyTorch so the installation may take some time.</p>
+</section>
+<section id="how-to-use-fastinference">
+<h1>How to use fastinference<a class="headerlink" href="#how-to-use-fastinference" title="Permalink to this headline"></a></h1>
+<section id="using-fastinference-from-the-command-linear">
+<h2>Using fastinference from the command linear<a class="headerlink" href="#using-fastinference-from-the-command-linear" title="Permalink to this headline"></a></h2>
+<p>If you have stored your model on disk (e.g. as an <code class="code docutils literal notranslate"><span class="pre">json</span></code> file) then you can generate the code directly from the CLI via:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 fastinference/main.py --model /my/nice/model.json --feature_type float --out_path /my/nice/model --out_name <span class="s2">&quot;model&quot;</span> --implementation my.newest.implementation --optimize my.newest.optimization
+</pre></div>
+</div>
+<p>This call will load the model stored in <code class="code docutils literal notranslate"><span class="pre">/my/nice/model.json</span></code>, performs the optimizations implemented in <code class="code docutils literal notranslate"><span class="pre">my.newest.optimization</span></code> and then finally generates the implementation according to <code class="code docutils literal notranslate"><span class="pre">my.newest.implementation</span></code> where the data type of features is <code class="code docutils literal notranslate"><span class="pre">float</span></code>. Any additional arguments passed to <code class="code docutils literal notranslate"><span class="pre">main.py</span></code> will be passed to the <code class="code docutils literal notranslate"><span class="pre">my.newest.optimization</span></code> and <code class="code docutils literal notranslate"><span class="pre">my.newest.implementation</span></code> respectively so you can just pass anything you require. Note that for ensembles you can additionally pass <code class="code docutils literal notranslate"><span class="pre">baseimplementation</span></code> and <code class="code docutils literal notranslate"><span class="pre">baseoptimize</span></code> to specify optimizations on the base learners as well as their respective implementations.</p>
+<p>For Linear, Discriminant, Tree, Ensemble models we currently support <code class="code docutils literal notranslate"><span class="pre">.json</span></code> files which have previously been written via <code class="code docutils literal notranslate"><span class="pre">Loader.model_to_json</span></code>. For Neural Networks we use <code class="code docutils literal notranslate"><span class="pre">onnx</span></code> files which e.g. have been written via <code class="code docutils literal notranslate"><span class="pre">torch.onnx.export</span></code> or <code class="code docutils literal notranslate"><span class="pre">tf2onnx</span></code>. Reading onnx files can be tricky sometimes so please check out Neural Network for caveats.</p>
+</section>
+<section id="using-fastinference-in-your-python-program">
+<h2>Using fastinference in your python program<a class="headerlink" href="#using-fastinference-in-your-python-program" title="Permalink to this headline"></a></h2>
+<p>Simply import <code class="code docutils literal notranslate"><span class="pre">fastinference.Loader</span></code>, load your model and you are ready to go:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">fastinference.Loader</span>
+
+<span class="n">loaded_model</span> <span class="o">=</span> <span class="n">fastinference</span><span class="o">.</span><span class="n">Loader</span><span class="o">.</span><span class="n">model_from_file</span><span class="p">(</span><span class="s2">&quot;/my/nice/model.json&quot;</span><span class="p">)</span>
+<span class="n">loaded_model</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="s2">&quot;my.newest.optimization&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+<span class="n">loaded_model</span><span class="o">.</span><span class="n">implement</span><span class="p">(</span><span class="s2">&quot;/my/nice/model&quot;</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">,</span> <span class="s2">&quot;my.newest.implementation&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Again for ensembles you can pass additional <code class="code docutils literal notranslate"><span class="pre">base_optimizers</span></code> and <code class="code docutils literal notranslate"><span class="pre">base_args</span></code> arguments to the call of <code class="code docutils literal notranslate"><span class="pre">optimize</span></code> for the optimization of base learners in the ensemble. For <code class="code docutils literal notranslate"><span class="pre">scikit-learn</span></code> models you can also <code class="code docutils literal notranslate"><span class="pre">Loader.model_from_sklearn</span></code> to load the model. For Deep Learning approaches you will always have to store the model as an ONNX file first.</p>
+</section>
+</section>
+<section id="a-complete-example">
+<h1>A complete example<a class="headerlink" href="#a-complete-example" title="Permalink to this headline"></a></h1>
+<p>A complete example which trains a Random Forest on artificial data, performs some optimizations on the trees and finally generates some c++ code would look like the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define some constants</span>
+<span class="nv">OUTPATH</span><span class="o">=</span><span class="s2">&quot;/tmp/fastinference&quot;</span>
+<span class="nv">MODELNAME</span><span class="o">=</span><span class="s2">&quot;RandomForestClassifier&quot;</span>
+<span class="nv">FEATURE_TYPE</span><span class="o">=</span><span class="s2">&quot;int&quot;</span>
+
+<span class="c1"># Generate some artificial data with 5 classes, 20 features and 10000 data points.</span>
+python3 tests/data/generate_data.py --out <span class="nv">$OUTPATH</span> --nclasses <span class="m">5</span> --nfeatures <span class="m">20</span> --difficulty <span class="m">0</span>.5 --nexamples <span class="m">10000</span>
+
+<span class="c1"># Train a RF with 25 trees on the generated data</span>
+python3 tests/train_<span class="nv">$TYPE</span>.py --training <span class="nv">$OUTPATH</span>/training.csv --testing <span class="nv">$OUTPATH</span>/testing.csv --out <span class="nv">$OUTPATH</span> --name <span class="nv">$MODELNAME</span>  --nestimators <span class="m">25</span>
+
+<span class="c1"># Perform the actual optimization + code generation</span>
+python3 fastinference/main.py --model <span class="nv">$OUTPATH</span>/<span class="nv">$MODELNAME</span>.json --feature_type <span class="nv">$FEATURE_TYPE</span> --out_path <span class="nv">$OUTPATH</span> --out_name <span class="s2">&quot;model&quot;</span> --implementation cpp --baseimplementation cpp.ifelse --baseoptimize swap
+
+<span class="c1"># Prepare the C++ files for compilation</span>
+python3 ./tests/data/convert_data.py --file <span class="nv">$OUTPATH</span>/testing.csv --out <span class="nv">$OUTPATH</span>/testing.h --dtype <span class="nv">$FEATURE_TYPE</span> --ltype <span class="s2">&quot;unsigned int&quot;</span>
+cp ./tests/main.cpp <span class="nv">$OUTPATH</span>
+cp ./tests/CMakeLists.txt <span class="nv">$OUTPATH</span>
+<span class="nb">cd</span> <span class="nv">$OUTPATH</span>
+
+<span class="c1"># Compile the code</span>
+cmake . -DMODELNAME<span class="o">=</span><span class="nv">$MODELNAME</span> -DFEATURE_TYPE<span class="o">=</span><span class="nv">$FEATURE_TYPE</span>
+make
+
+<span class="c1"># Run the code</span>
+./testCode
+</pre></div>
+</div>
+<p>There is a CI/CD pipeline running which tests the current code and uses <code class="code docutils literal notranslate"><span class="pre">tests/run_tests.sh</span></code> to orchestrate the various scripts. In doubt please have a look at these files.</p>
 </section>
 <section id="acknowledgements">
 <h1>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline"></a></h1>
@@ -90,7 +167,9 @@
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
