@@ -109,7 +109,7 @@ class Tree(Model):
         Returns:
             Tree: The newly generated tree.
         """
-        tree = Tree(len(set(sk_model.classes_)), model_category = "tree", model_name = name, model_accuracy=accuracy)
+        tree = Tree(len(set(sk_model.classes_)), name = name, accuracy=accuracy)
         
         tree.nodes = []
         tree.head = None

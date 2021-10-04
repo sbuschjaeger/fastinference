@@ -36,7 +36,7 @@ class Linear(Model):
         Returns:
             Linear: The newly generated linear model.
         """
-        model = Linear(len(set(sk_model.classes_)), "linear", accuracy, name)
+        model = Linear(len(set(sk_model.classes_)), accuracy, name)
         model.intercept = sk_model.intercept_
         model.coef = sk_model.coef_
 

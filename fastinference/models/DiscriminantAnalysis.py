@@ -38,7 +38,7 @@ class DiscriminantAnalysis(Model):
         Returns:
             DiscriminantAnalysis: The newly generated DiscriminantAnalysis object.
         """
-        obj = DiscriminantAnalysis(len(set(sk_model.classes_)), "discriminant", accuracy, name)
+        obj = DiscriminantAnalysis(len(set(sk_model.classes_)), accuracy, name)
 
         obj.means = sk_model.means_
         obj.log_priors = np.log(sk_model.priors_)
