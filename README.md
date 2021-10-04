@@ -15,18 +15,14 @@ Fastinference is currently targeted to small, embedded systems as well as FPGAs,
 
 You can install this package via pip from git 
 
-.. code-block::
-
-   pip install git+https://github.com/sbuschjaeger/fastinference.git
+    pip install git+https://github.com/sbuschjaeger/fastinference.git
 
 If you have trouble with dependencies you can try setting up a conda environment which I use for development:
 
-.. code-block::
-
-   git clone git@github.com:sbuschjaeger/fastinference.git
-   cd fastinference
-   conda env create -f environment.yml
-   conda activate fi
+    git clone git@github.com:sbuschjaeger/fastinference.git
+    cd fastinference
+    conda env create -f environment.yml
+    conda activate fi
 
 Please note that this environment also contains some larger packages such as PyTorch so the installation may take some time. 
 
@@ -36,9 +32,7 @@ Please note that this environment also contains some larger packages such as PyT
 
 If you have stored your model on disk (e.g. as an `json` file) then you can generate the code directly from the CLI via:
 
-.. code-block:: bash
-
-   python3 fastinference/main.py --model /my/nice/model.json --feature_type float --out_path /my/nice/model --out_name "model" --implementation my.newest.implementation --optimize my.newest.optimization
+    python3 fastinference/main.py --model /my/nice/model.json --feature_type float --out_path /my/nice/model --out_name "model" --implementation my.newest.implementation --optimize my.newest.optimization
 
 This call will load the model stored in `/my/nice/model.json`, performs the optimizations implemented in `my.newest.optimization` and then finally generates the implementation according to `my.newest.implementation` where the data type of features is `float`. Any additional arguments passed to `main.py` will be passed to the `my.newest.optimization` and `my.newest.implementation` respectively so you can just pass anything you require. Note that for ensembles you can additionally pass `baseimplementation` and `baseoptimize` to specify optimizations on the base learners as well as their respective implementations.
 
@@ -48,10 +42,7 @@ For Linear, Discriminant, Tree, Ensemble models we currently support `.json` fil
 
 Simply import `fastinference.Loader`, load your model and you are ready to go:
 
-.. code-block:: python
-
     import fastinference.Loader
-
     loaded_model = fastinference.Loader.model_from_file("/my/nice/model.json")
     loaded_model.optimize("my.newest.optimization", None)
     loaded_model.implement("/my/nice/model", "model", "my.newest.implementation")
@@ -62,34 +53,32 @@ Again for ensembles you can pass additional `base_optimizers` and `base_args` ar
 
 A complete example which trains a Random Forest on artificial data, performs some optimizations on the trees and finally generates some c++ code would look like the following: 
 
-.. code-block:: bash
+    # Define some constants
+    OUTPATH="/tmp/fastinference"
+    MODELNAME="RandomForestClassifier"
+    FEATURE_TYPE="int"
 
-  # Define some constants
-  OUTPATH="/tmp/fastinference"
-  MODELNAME="RandomForestClassifier"
-  FEATURE_TYPE="int"
+    # Generate some artificial data with 5 classes, 20 features and 10000 data points. 
+    python3 tests/data/generate_data.py --out $OUTPATH --nclasses 5 --nfeatures 20 --difficulty 0.5 --nexamples 10000
 
-  # Generate some artificial data with 5 classes, 20 features and 10000 data points. 
-  python3 tests/data/generate_data.py --out $OUTPATH --nclasses 5 --nfeatures 20 --difficulty 0.5 --nexamples 10000
+    # Train a RF with 25 trees on the generated data
+    python3 tests/train_$TYPE.py --training $OUTPATH/training.csv --testing $OUTPATH/testing.csv --out $OUTPATH --name $MODELNAME  --nestimators 25 
 
-  # Train a RF with 25 trees on the generated data
-  python3 tests/train_$TYPE.py --training $OUTPATH/training.csv --testing $OUTPATH/testing.csv --out $OUTPATH --name $MODELNAME  --nestimators 25 
+    # Perform the actual optimization + code generation
+    python3 fastinference/main.py --model $OUTPATH/$MODELNAME.json --feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" --implementation cpp --baseimplementation cpp.ifelse --baseoptimize swap 
 
-  # Perform the actual optimization + code generation
-  python3 fastinference/main.py --model $OUTPATH/$MODELNAME.json --feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" --implementation cpp --baseimplementation cpp.ifelse --baseoptimize swap 
+    # Prepare the C++ files for compilation
+    python3 ./tests/data/convert_data.py --file $OUTPATH/testing.csv --out $OUTPATH/testing.h --dtype $FEATURE_TYPE --ltype "unsigned int"
+    cp ./tests/main.cpp $OUTPATH
+    cp ./tests/CMakeLists.txt $OUTPATH
+    cd $OUTPATH
 
-  # Prepare the C++ files for compilation
-  python3 ./tests/data/convert_data.py --file $OUTPATH/testing.csv --out $OUTPATH/testing.h --dtype $FEATURE_TYPE --ltype "unsigned int"
-  cp ./tests/main.cpp $OUTPATH
-  cp ./tests/CMakeLists.txt $OUTPATH
-  cd $OUTPATH
+    # Compile the code
+    cmake . -DMODELNAME=$MODELNAME -DFEATURE_TYPE=$FEATURE_TYPE
+    make
 
-  # Compile the code
-  cmake . -DMODELNAME=$MODELNAME -DFEATURE_TYPE=$FEATURE_TYPE
-  make
-
-  # Run the code
-  ./testCode
+    # Run the code
+    ./testCode
 
 There is a CI/CD pipeline running which tests the current code and uses `tests/run_tests.sh` to orchestrate the various scripts. In doubt please have a look at these files.
 
