@@ -18,6 +18,7 @@ jobs:
           submodules: recursive
       - name: Generate the docs
         run: |
+          pip install -e .
           pip install sphinx 
           pip install karma-sphinx-theme 
           pip install sphinx_rtd_theme

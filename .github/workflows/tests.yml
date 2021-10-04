@@ -79,6 +79,40 @@ jobs:
           implementation: cpp
           baseimplementation: cpp.ifelse
 
+      - name: Test DT inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation
+        env:
+          type: tree
+          nestimators: 1
+          maxdepth: 5
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/
+          modelname: DecisionTreeClassifier
+          implementation: cpp.native
+
+      - name: Test RF inference
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation --baseimplementation=$baseimplementation
+        env:
+          type: tree
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/
+          modelname: RandomForestClassifier
+          nestimators: 20
+          implementation: cpp
+          baseimplementation: cpp.native
+
       - name: Test linear inference
         run: | 
             cd $GITHUB_WORKSPACE

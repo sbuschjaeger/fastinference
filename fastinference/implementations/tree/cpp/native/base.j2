@@ -1,0 +1,34 @@
+namespace {{namespace}} {
+
+namespace {{model.name}} {
+struct Node {
+    //bool isLeaf;
+    {{int_type}} feature;
+    {{feature_type}} split;
+    {{int_type}} leftChild;
+    {{int_type}} rightChild;
+};
+
+{{label_type}} predictions[{{leaf_nodes|length}}][{{model.num_classes}}] = { {% for n in leaf_nodes %}{{ n.prediction|replace('[', '{')|replace(']', '}') }}{% if not loop.last %}, {% endif %}{% endfor %} };
+Node nodes[{{inner_nodes|length}}] = { {% for n in inner_nodes %}{ {{n.feature}}, {{n.split}}, {{n.leftChild.id}}, {{n.rightChild.id}}}{% if not loop.last %}, {% endif %}{% endfor %} };
+
+}
+
+void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
+    {{int_type}} i = 0;
+    //while(!{{model.name}}::nodes[i].isLeaf) {
+    while(i < {{inner_nodes|length}}) {
+        if (x[{{model.name}}::nodes[i].feature] <= {{model.name}}::nodes[i].split){
+            i = {{model.name}}::nodes[i].leftChild;
+        } else {
+            i = {{model.name}}::nodes[i].rightChild;
+        }
+    }
+
+    for (unsigned int j = 0; j < {{model.num_classes}}; ++j) {
+        pred[j] += {% if weight != 1.0 %} {{model.name}}::predictions[i-{{inner_nodes|length}}][j]*{{weight}}; {% else %} {{model.name}}::predictions[i-{{inner_nodes|length}}][j]; {% endif %}
+
+    }
+}
+
+}

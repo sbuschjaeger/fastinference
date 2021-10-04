@@ -195,6 +195,7 @@ class Tree(Model):
 
             if "prediction" in entry and entry["prediction"] is not None:
                 node.prediction = entry["prediction"]
+                tree.nodes.append(node)
             else:
                 node.probLeft = float(entry["probLeft"])
                 node.probRight = float(entry["probRight"])
