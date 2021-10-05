@@ -4,12 +4,12 @@ import numpy as np
 from jinja2 import Environment, FileSystemLoader
 
 def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double",label_type = "double", **kwargs ):
-    """Generates a (unrolled) C++ implementation of the given linear model.  Unrolled means that the coefficients of the linear model are not stored in arrays but are directly translated into the source code. You can use this implementation by simply passing :code:`"cpp"` to the implement, e.g.
+    """Generates a (unrolled) C++ implementation of the given linear model.  Unrolled means that the coefficients of the linear model are not stored in arrays but are directly translated into the source code. You can use this implementation by simply passing :code:`"cpp.unroll"` to the implement, e.g.
 
     .. code-block:: python
 
         loaded_model = fastinference.Loader.model_from_file("/my/nice/model.json")
-        loaded_model.implement("/some/nice/place/", "mymodel", "cpp")
+        loaded_model.implement("/some/nice/place/", "mymodel", "cpp.unroll")
 
     Args:
         model (Linear): The linear model to be implemented

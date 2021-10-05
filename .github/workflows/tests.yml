@@ -45,7 +45,7 @@ jobs:
           nestimators: 20
           implementation: cpp
 
-      - name: Test DT inference
+      - name: Test DT inference with ifelse backend
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
@@ -62,7 +62,7 @@ jobs:
           modelname: DecisionTreeClassifier
           implementation: cpp.ifelse
 
-      - name: Test RF inference
+      - name: Test RF inference with ifelse backend
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
@@ -79,7 +79,7 @@ jobs:
           implementation: cpp
           baseimplementation: cpp.ifelse
 
-      - name: Test DT inference
+      - name: Test DT inference with native backend
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
@@ -96,7 +96,7 @@ jobs:
           modelname: DecisionTreeClassifier
           implementation: cpp.native
 
-      - name: Test RF inference
+      - name: Test RF inference with native backend
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
@@ -113,7 +113,7 @@ jobs:
           implementation: cpp
           baseimplementation: cpp.native
 
-      - name: Test linear inference
+      - name: Test linear inference with native backend
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
@@ -127,9 +127,9 @@ jobs:
           outpath: /tmp/fastinference/
           modelname: RidgeClassifier
           nestimators: 1
-          implementation: cpp
+          implementation: cpp.native
 
-      - name: Test bagged linear inference
+      - name: Test bagged linear inference with native backend
         run: | 
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
@@ -144,7 +144,40 @@ jobs:
           modelname: BaggingRidgeClassifier
           nestimators: 20
           implementation: cpp
-          baseimplementation: cpp
+          baseimplementation: cpp.native
+
+      - name: Test linear inference with unroll backend
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation
+        env:
+          type: linear
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/
+          modelname: RidgeClassifier
+          nestimators: 1
+          implementation: cpp.unroll
+
+      - name: Test bagged linear inference with unroll backend
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            bash tests/run_test.sh --outpath=$outpath --nclasses=$nclasses --nfeatures=$nfeatures --difficulty=$difficulty --nexamples=$nexamples --type=$type --modelname=$modelname --nestimators=$nestimators --implementation=$implementation --baseimplementation=$baseimplementation
+        env:
+          type: linear
+          nclasses: 5
+          nfeatures: 10
+          difficulty: 0.5
+          nexamples: 10000
+          outpath: /tmp/fastinference/linear/bagging/
+          modelname: BaggingRidgeClassifier
+          nestimators: 20
+          implementation: cpp
+          baseimplementation: cpp.unroll
 
       - name: Test MLP inference
         run: | 

@@ -1,0 +1,24 @@
+namespace {{namespace}} {
+
+{{ code_static }}
+
+namespace {{model.name}} {
+constexpr {{internal_type}} coef[{{model.coef|length}}][{{model.coef[0]|length}}] = { {% for c1 in model.coef %}{{c1|replace('[', '{')|replace(']', '}')}}{% if not loop.last %}, {% endif %}{% endfor %} };
+constexpr {{internal_type}} intercept[{{model.intercept|length}}] = {{model.intercept|replace('[', '{')|replace(']', '}')}};
+}
+
+void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
+    for (unsigned int j = 0; j < {{model.num_classes}}; ++j) {
+        {{internal_type}} sum = {{model.name}}::intercept[j]; 
+        for (unsigned int i = 0; i < {{model.coef[0]|length}}; ++i) {
+            sum += {{model.name}}::coef[j][i] * x[i];
+        }
+        {% if weight != 1.0 %}
+        pred[j] += {{weight}} * sum; 
+        {% else %}
+        pred[j] += sum; 
+        {% endif %}
+    }
+}
+
+}

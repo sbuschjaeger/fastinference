@@ -22,7 +22,7 @@ class Linear(Model):
         """
         super().__init__(num_classes, "linear", accuracy, name)
         self.coef = []
-        self.intercept = 0
+        self.intercept = []
     
     @classmethod
     def from_sklearn(cls, sk_model, name = "model", accuracy = None):

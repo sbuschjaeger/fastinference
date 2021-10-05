@@ -9,8 +9,8 @@ struct Node {
     {{int_type}} rightChild;
 };
 
-{{label_type}} predictions[{{leaf_nodes|length}}][{{model.num_classes}}] = { {% for n in leaf_nodes %}{{ n.prediction|replace('[', '{')|replace(']', '}') }}{% if not loop.last %}, {% endif %}{% endfor %} };
-Node nodes[{{inner_nodes|length}}] = { {% for n in inner_nodes %}{ {{n.feature}}, {{n.split}}, {{n.leftChild.id}}, {{n.rightChild.id}}}{% if not loop.last %}, {% endif %}{% endfor %} };
+constexpr {{label_type}} predictions[{{leaf_nodes|length}}][{{model.num_classes}}] = { {% for n in leaf_nodes %}{{ n.prediction|replace('[', '{')|replace(']', '}') }}{% if not loop.last %}, {% endif %}{% endfor %} };
+constexpr Node nodes[{{inner_nodes|length}}] = { {% for n in inner_nodes %}{ {{n.feature}}, {{n.split}}, {{n.leftChild.id}}, {{n.rightChild.id}}}{% if not loop.last %}, {% endif %}{% endfor %} };
 
 }
 
