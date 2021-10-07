@@ -93,7 +93,6 @@ def main():
     else:
         loaded_model.optimize(args.optimize, optimizer_args)
 
-    os.makedirs(args.out_path, exist_ok = True)
     if isinstance(loaded_model, Ensemble):
         loaded_model.implement(args.out_path, args.out_name, args.implementation, args.baseimplementation, **unknown)
     else:
@@ -104,5 +103,6 @@ def main():
 
 if __name__ == '__main__':
     # sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//SimpleMLP/SimpleMLP.onnx', '--feature_type', 'double', '--out_path', '/tmp/fastinference//SimpleMLP', '--out_name', 'model', '--implementation', 'fpga.binary']
+    #sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//DT/DT.json', '--feature_type', 'double', '--out_path', '/tmp/fastinference//DT', '--out_name', 'model', '--implementation', 'cpp.native']
     print(sys.argv)
     main()

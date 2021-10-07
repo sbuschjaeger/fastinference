@@ -38,7 +38,7 @@ def main():
     parser.add_argument('--out', required=True,help='Folder where data should written to.')
     parser.add_argument('--name', required=True, help='Modelname')
     parser.add_argument('--nestimators', required=False, type=int, default=8,help='Number of trees in a random forest.')
-    parser.add_argument('--maxdepth', required=False, type=int, default=5,help='Maximum tree-depth for decision trees and random forest.')
+    parser.add_argument('--maxdepth', required=False, type=int, default=20,help='Maximum tree-depth for decision trees and random forest.')
     args = parser.parse_args()
 
     print("Loading training data")

@@ -77,7 +77,7 @@ class Model():
         args = [{} if a is None else a for a in args]
 
         for opt, arg in zip(optimizers, args):
-            run_optimization = dynamic_import("optimizers.{}.{}".format(self.category,opt), "optimize")
+            run_optimization = dynamic_import("fastinference.optimizers.{}.{}".format(self.category,opt), "optimize")
             self = run_optimization(self, **arg)
 
     def predict(self, X):
@@ -92,7 +92,8 @@ class Model():
         return self.predict_proba(X).argmax(axis=1)
 
     def implement(self, out_path, out_name, implementation_type, **kwargs):
-        to_implementation = dynamic_import("implementations.{}.{}.implement".format(self.category,implementation_type), "to_implementation")
+        os.makedirs(out_path, exist_ok = True)
+        to_implementation = dynamic_import("fastinference.implementations.{}.{}.implement".format(self.category,implementation_type), "to_implementation")
         self_copy = copy.deepcopy(self)
         to_implementation(self_copy, out_path, out_name, **kwargs)
 

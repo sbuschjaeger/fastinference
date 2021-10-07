@@ -14,7 +14,7 @@ class Reshape(Layer):
             output_shape.append( get_initializer(graph, concat_node.input[i+1])[0] )
 
         output_shape = tuple(output_shape)
-
+        
         if len(output_shape) == 2 and output_shape[1] == -1:
             flatten_dim = np.prod( (input_shape) )
             output_shape = (1, flatten_dim)

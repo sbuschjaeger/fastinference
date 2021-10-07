@@ -6,7 +6,6 @@ channels:
 dependencies:
   - cmake
   - python 
-  - onnx
   - jinja2
   - scikit-learn
   - numpy
@@ -16,6 +15,7 @@ dependencies:
   - cudatoolkit=10.2
   - pip
   - pip:
+    - onnx
     - cvxpy
     - onnxruntime 
     - pip install git+https://github.com/sbuschjaeger/PyPruning.git
