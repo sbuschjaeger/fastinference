@@ -4,7 +4,7 @@ import heapq
 
 from jinja2 import Environment, FileSystemLoader
 
-def reorder(model, set_size = 32, **kwargs):
+def reorder(model, set_size = 8, force_cacheline = False, **kwargs):
     """Extracts a list of inner_nodes and leaf_nodes from the model while storing additional left_is_leaf / right_is_leaf / id fields in the inner_nodes for the code generation. The left_is_leaf/right_is_leaf fields indicate if the left/right child of an inner node is a leaf note, whereas the id field can be used to access the correct index in the array, e.g. by using node.leftChild.id. This method tries to place nodes in consecutive order which have a maximum probability to be executed together. This basically implements algorithm 2 from the given reference.
 
     Reference:
@@ -12,7 +12,8 @@ def reorder(model, set_size = 32, **kwargs):
 
     Args:
         model (Tree): A given tree model.
-        set_size (int, optional): The cache set size. Defaults to 32.
+        set_size (int, optional): The cache set size. Defaults to 8.
+        force_cacheline (bool, optional): If True then "padding" nodes are introduced to fill the entire cache line. Defaults to False.
 
     Returns:
         inner_nodes: The list of inner_nodes in the order given by the BFS
@@ -20,7 +21,7 @@ def reorder(model, set_size = 32, **kwargs):
     """
     leaf_nodes = []
     inner_nodes = []
-    to_expand = [ ]
+    to_expand = []
     # Per convention heappush uses the first element of a tuple for comparisons. We are using
     #   (pathProb, parent id, true/false if this node is a left subtree, node)
     # to manage the nodes. Note that heapq maintains a min-heap, whereas we require a max-heap. 
@@ -33,7 +34,6 @@ def reorder(model, set_size = 32, **kwargs):
         cset_size = 0
 
         # Is the current set full already? 
-        # TODO Check what set_size really means LOL. Currently it is the maximum path length?!?!?!
         while (cset_size < set_size):
             if n.prediction is not None:
                 # A leaf node is found and hence this path cannot be explored further.
@@ -44,6 +44,12 @@ def reorder(model, set_size = 32, **kwargs):
                     else:
                         inner_nodes[pid].rightChild.id = len(leaf_nodes)
 
+                if force_cacheline:
+                    # Fill in padding / dummy nodes if cset is not full yet
+                    for _ in range(cset_size - set_size):
+                        inner_nodes.append(model.head)
+                        cset_size += 1
+                
                 leaf_nodes.append(n)
                 break
             else:
@@ -140,7 +146,7 @@ def get_nodes(model):
             to_expand.append( (cid, False, n.rightChild) )
     return inner_nodes, leaf_nodes
 
-def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", int_type = "unsigned int", round_splits = False, infer_types = False, reorder_nodes = False, set_size = 32, **kwargs):
+def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", int_type = "unsigned int", round_splits = False, infer_types = False, reorder_nodes = False, set_size = 8, force_cacheline = False, **kwargs):
     """Generates a native C++ implementation of the given Tree model. Native means that the tree is represented in an array structure which is iterated via a while-loop. You can use this implementation by simply passing :code:`"cpp.native"` to the implement, e.g.
 
     .. code-block:: python
@@ -159,7 +165,8 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         round_splits (bool, optional): If True then all splits are rounded towards the next integer. Defaults to False,
         infer_types (bool, optional): If True then the smallest data type for index variables is inferred by the overall tree size. Otherwise "unsigned int" is used. Defaults to False.
         reorder_nodes (bool, optional): If True then the nodes in the tree are reorder so that cache set size is respected. You can set the size of the cache set via set_size parameter. Defaults to False.
-        set_size (int, optional): The size of the cache set for if reorder_nodes is set to True. Defaults to 32.
+        set_size (int, optional): The size of the cache set for if reorder_nodes is set to True. Defaults to 8.
+        force_cacheline (bool, optional): If True then "padding" nodes are introduced to fill the entire cache line. Defaults to False.
     """
     env = Environment(
         loader=FileSystemLoader(os.path.join(os.path.dirname(os.path.abspath(__file__)))),
@@ -172,7 +179,7 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
                 n.split = np.ceil(n.split).astype(int)
     
     if reorder_nodes:
-        inner_nodes, leaf_nodes = reorder(model, set_size)
+        inner_nodes, leaf_nodes = reorder(model, set_size, force_cacheline)
     else:
         inner_nodes, leaf_nodes = get_nodes(model)
     
