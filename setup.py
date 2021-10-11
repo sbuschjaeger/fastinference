@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 setup(name='fastinference',
       version='0.1',
@@ -11,6 +11,9 @@ setup(name='fastinference',
       packages=['fastinference'],
       #scripts=["fastinference/fastinference.py"],
       zip_safe=False,
+      packages=find_packages(),#include=['fastinference', 'fastinference.models', 'fastinference.models.nn'])
+      include_package_data = True,
+      package_data = {'': ['*.j2'],},
       install_requires = [
       "jinja2",
       "onnx",

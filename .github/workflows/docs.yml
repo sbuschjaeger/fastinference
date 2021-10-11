@@ -4,9 +4,9 @@ on:
     branches: [main]
 
 jobs:
-  test-cpp:
+  build-docs:
     runs-on: ubuntu-latest
-    container: pytorchlightning/pytorch_lightning
+    #container: pytorchlightning/pytorch_lightning
     name: Generate docs
     # defaults:
     #   run:
@@ -17,7 +17,7 @@ jobs:
           submodules: recursive
       - name: Generate the docs
         run: |
-          pip install -e .
+          pip install .
           pip install sphinx 
           pip install karma-sphinx-theme 
           pip install sphinx_rtd_theme
