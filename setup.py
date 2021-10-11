@@ -8,7 +8,7 @@ setup(name='fastinference',
       author=u'Sebastian Buschjäger',
       author_email='{sebastian.buschjaeger}@tu-dortmund.de',
       license='MIT',
-      packages=['fastinference'],
+      #packages=['fastinference'],
       #scripts=["fastinference/fastinference.py"],
       zip_safe=False,
       packages=find_packages(),#include=['fastinference', 'fastinference.models', 'fastinference.models.nn'])
