@@ -15,6 +15,7 @@ Tree implementations
 --------------------
 
 .. autofunction:: fastinference.implementations.tree.cpp.ifelse.implement.to_implementation
+.. autofunction:: fastinference.implementations.tree.cpp.native.implement.to_implementation
 
 Ensemble implementations
 ------------------------
