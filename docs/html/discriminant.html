@@ -45,7 +45,7 @@
 <li class="toctree-l2"><a class="reference internal" href="linear.html">Linear</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">DiscriminantAnalysis</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#available-optimizations">Available optimizations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#the-discriminantanalysis-object">The DiscriminantAnalysis object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-fastinference.models.DiscriminantAnalysis">The DiscriminantAnalysis object</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="tree.html">Tree</a></li>
@@ -89,8 +89,98 @@
 <h2>Available optimizations<a class="headerlink" href="#available-optimizations" title="Permalink to this headline"></a></h2>
 <p>There are currently no optimizations available for DiscriminantAnalysis models. Check out <a class="reference internal" href="extending.html#extending-label"><span class="std std-ref">Extending fastinference</span></a> on how to add an optimization!</p>
 </section>
-<section id="the-discriminantanalysis-object">
-<h2>The DiscriminantAnalysis object<a class="headerlink" href="#the-discriminantanalysis-object" title="Permalink to this headline"></a></h2>
+<section id="module-fastinference.models.DiscriminantAnalysis">
+<span id="the-discriminantanalysis-object"></span><h2>The DiscriminantAnalysis object<a class="headerlink" href="#module-fastinference.models.DiscriminantAnalysis" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fastinference.models.DiscriminantAnalysis.</span></span><span class="sig-name descname"><span class="pre">DiscriminantAnalysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Model'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis" title="Permalink to this definition"></a></dt>
+<dd><p>Placeholder class for all discriminant analysis models. Currently targetd towards scikit-learns QuadraticDiscriminantAnalysis.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Model'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of this DiscriminantAnalysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_classes</strong> (<em>int</em>) – The number of classes this tree has been trained on.</p></li>
+<li><p><strong>accuracy</strong> (<em>float</em><em>, </em><em>optional</em>) – The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of this model. Defaults to “Model”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.from_dict">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a new DiscriminantAnalysis from the given dictionary. It is assumed that the ensemble has previously been stored with the <a class="reference internal" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.to_dict" title="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.to_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DiscriminantAnalysis.to_dict()</span></code></a> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – The dictionary from which this DiscriminantAnalysis should be generated.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The newly generated DiscriminantAnalysis classifier.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis" title="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis">DiscriminantAnalysis</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.from_sklearn">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_sklearn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sk_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Model'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.from_sklearn" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a new DiscriminantAnalysis from an sklearn QuadraticDiscriminantAnalysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sk_model</strong> (<em>QuadraticDiscriminantAnalysis</em>) – A scikit-learn QuadraticDiscriminantAnalysis object.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of this model. Defaults to “Model”.</p></li>
+<li><p><strong>accuracy</strong> (<em>float</em><em>, </em><em>optional</em>) – The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The newly generated DiscriminantAnalysis object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis" title="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis">DiscriminantAnalysis</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.predict_proba">
+<span class="sig-name descname"><span class="pre">predict_proba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.predict_proba" title="Permalink to this definition"></a></dt>
+<dd><p>Applies this DiscriminantAnalysis model to the given data and provides the predicted probabilities for each example in X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>numpy.array</em>) – A (N,d) matrix where N is the number of data points and d is the feature dimension. If X has only one dimension then a single example is assumed and X is reshaped via <code class="code docutils literal notranslate"><span class="pre">X</span> <span class="pre">=</span> <span class="pre">X.reshape(1,X.shape[0])</span></code></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A (N, c) prediction matrix where N is the number of data points and c is the number of classes</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Stores this DiscriminantAnalysis model as a dictionary which can be loaded with <a class="reference internal" href="#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.from_dict" title="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis.from_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DiscriminantAnalysis.from_dict()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The dictionary representation of this DiscriminantAnalysis model.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 

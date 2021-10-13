@@ -49,7 +49,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Neural Networks</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#some-notes-on-binarized-neural-networks">Some notes on Binarized Neural Networks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#available-optimizations">Available optimizations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#the-neuralnet-object">The NeuralNet object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-fastinference.models.nn.NeuralNet">The NeuralNet object</a></li>
 </ul>
 </li>
 </ul>
@@ -200,9 +200,129 @@
 </section>
 <section id="available-optimizations">
 <h2>Available optimizations<a class="headerlink" href="#available-optimizations" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="fastinference.optimizers.neuralnet.merge_nodes.optimize">
+<span class="sig-prename descclassname"><span class="pre">fastinference.optimizers.neuralnet.merge_nodes.</span></span><span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.optimizers.neuralnet.merge_nodes.optimize" title="Permalink to this definition"></a></dt>
+<dd><p>Merges subsequent BatchNorm and Step layers into a new Step layer with adapted thresholds in a single pass. Currently there is no recursive mergeing applied.</p>
+<p>TODO: Perform merging recursivley.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> (<a class="reference internal" href="#fastinference.models.nn.NeuralNet.NeuralNet" title="fastinference.models.nn.NeuralNet.NeuralNet"><em>NeuralNet</em></a>) – The NeuralNet model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The NeuralNet model with merged layers.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fastinference.models.nn.NeuralNet.NeuralNet" title="fastinference.models.nn.NeuralNet.NeuralNet">NeuralNet</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fastinference.optimizers.neuralnet.remove_nodes.optimize">
+<span class="sig-prename descclassname"><span class="pre">fastinference.optimizers.neuralnet.remove_nodes.</span></span><span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.optimizers.neuralnet.remove_nodes.optimize" title="Permalink to this definition"></a></dt>
+<dd><p>Removes LogSoftmax and positive scaling (Mul) layers from the network because they do not change the prediction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> (<a class="reference internal" href="#fastinference.models.nn.NeuralNet.NeuralNet" title="fastinference.models.nn.NeuralNet.NeuralNet"><em>NeuralNet</em></a>) – The NeuralNet model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The NeuralNet model with removed layers.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fastinference.models.nn.NeuralNet.NeuralNet" title="fastinference.models.nn.NeuralNet.NeuralNet">NeuralNet</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="the-neuralnet-object">
-<h2>The NeuralNet object<a class="headerlink" href="#the-neuralnet-object" title="Permalink to this headline"></a></h2>
+<section id="module-fastinference.models.nn.NeuralNet">
+<span id="the-neuralnet-object"></span><h2>The NeuralNet object<a class="headerlink" href="#module-fastinference.models.nn.NeuralNet" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fastinference.models.nn.NeuralNet.NeuralNet">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fastinference.models.nn.NeuralNet.</span></span><span class="sig-name descname"><span class="pre">NeuralNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_onnx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'model'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.nn.NeuralNet.NeuralNet" title="Permalink to this definition"></a></dt>
+<dd><p>A (simplified) neural network model. This class currently supports feed-forward multi-layer perceptrons as well as feed-forward convnets. In detail the following operations are supported</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Linear Layer</p></li>
+<li><p>Convolutional Layer</p></li>
+<li><p>Sigmoid Activation</p></li>
+<li><p>ReLU Activation</p></li>
+<li><p>LeakyRelu Activation</p></li>
+<li><p>MaxPool</p></li>
+<li><p>AveragePool</p></li>
+<li><p>LogSoftmax</p></li>
+<li><p>LogSoftmax</p></li>
+<li><p>Multiplication with a constant (Mul)</p></li>
+<li><p>Reshape</p></li>
+<li><p>BatchNormalization</p></li>
+</ul>
+</div></blockquote>
+<p>All layers are stored in <code class="code docutils literal notranslate"><span class="pre">self.layer</span></code> which is already order for execution. Additionally, the original onnx_model is stored in <code class="code docutils literal notranslate"><span class="pre">self.onnx_model</span></code>.</p>
+<p>This class loads ONNX files to build the internal computation graph. This can sometimes become a little tricky since the ONNX exporter work differently for each framework / version. In PyToch we usually use</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dummy_x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">requires_grad</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dummy_x</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span><span class="n">name</span><span class="p">),</span> <span class="n">training</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">TrainingMode</span><span class="o">.</span><span class="n">PRESERVE</span><span class="p">,</span> <span class="n">export_params</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">opset_version</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">do_constant_folding</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">input_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;input&#39;</span><span class="p">],</span>  <span class="n">output_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">],</span> <span class="n">dynamic_axes</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;input&#39;</span> <span class="p">:</span> <span class="p">{</span><span class="mi">0</span> <span class="p">:</span> <span class="s1">&#39;batch_size&#39;</span><span class="p">},</span><span class="s1">&#39;output&#39;</span> <span class="p">:</span> <span class="p">{</span><span class="mi">0</span> <span class="p">:</span> <span class="s1">&#39;batch_size&#39;</span><span class="p">}})</span>
+</pre></div>
+</div>
+<p><strong>Important</strong>: This class automatically merges “Constant -&gt; Greater -&gt; Constant -&gt; Constant -&gt; Where” operations into a single step layer. This is specifically designed to parse Binarized Neural Networks, but might be wrong for some types of networks.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.nn.NeuralNet.NeuralNet.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_onnx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'model'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.nn.NeuralNet.NeuralNet.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of NeuralNet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>onnx_neural_net</strong> (<em>str</em>) – Path to the onnx file.</p></li>
+<li><p><strong>accuracy</strong> (<em>float</em><em>, </em><em>optional</em>) – The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of this model. Defaults to “Model”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.nn.NeuralNet.NeuralNet.predict_proba">
+<span class="sig-name descname"><span class="pre">predict_proba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.nn.NeuralNet.NeuralNet.predict_proba" title="Permalink to this definition"></a></dt>
+<dd><p>Applies this NeuralNet to the given data and provides the predicted probabilities for each example in X. This function internally calls <code class="code docutils literal notranslate"><span class="pre">onnxruntime.InferenceSession</span></code> for inference..</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>numpy.array</em>) – A (N,d) matrix where N is the number of data points and d is the feature dimension. If X has only one dimension then a single example is assumed and X is reshaped via <code class="code docutils literal notranslate"><span class="pre">X</span> <span class="pre">=</span> <span class="pre">X.reshape(1,X.shape[0])</span></code></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A (N, c) prediction matrix where N is the number of data points and c is the number of classes</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fastinference.models.nn.NeuralNet.layer_from_node">
+<span class="sig-prename descclassname"><span class="pre">fastinference.models.nn.NeuralNet.</span></span><span class="sig-name descname"><span class="pre">layer_from_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.nn.NeuralNet.layer_from_node" title="Permalink to this definition"></a></dt>
+<dd><p>Constructs the appropriate layer from the given graph and node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graph</strong> – The onnx graph.</p></li>
+<li><p><strong>node</strong> – The current node.</p></li>
+<li><p><strong>input_shape</strong> (<em>tuple</em>) – The input shape of the current node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>NotImplementedError</strong> – Throws an error if there is no implementation for the current node available.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The newly constructed layer.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Layer</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
