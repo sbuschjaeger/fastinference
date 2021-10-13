@@ -11,8 +11,9 @@ namespace FAST_INFERENCE {}
 using namespace FAST_INFERENCE;
 
 auto benchmark(unsigned int repeat = 20) {
-    double output[NUM_CLASSES] = {0};
-    
+    //double output[NUM_CLASSES] = {0};
+    double * output = new double[NUM_CLASSES];
+
 	unsigned int matches = 0;
     auto start = std::chrono::high_resolution_clock::now();
     for (unsigned int k = 0; k < repeat; ++k) {
@@ -30,13 +31,6 @@ auto benchmark(unsigned int repeat = 20) {
 			//int const * const x = &X[i*NUM_FEATURES];
 			FEATURE_TYPE const * const x = &X[i*NUM_FEATURES];
 			predict(x, output);
-			/*if (i < 35) {
-				for (unsigned int j = 0; j < NUM_FEATURES; ++j) {
-					std::cout << x[j] << " ";
-				}
-				std::cout << " - " << Y[i];
-				std::cout << std::endl;
-			}*/
 
 	        double max = output[0];
 	        unsigned int argmax = 0;
@@ -53,6 +47,7 @@ auto benchmark(unsigned int repeat = 20) {
 	    }
     }
 
+	delete[] output;
     auto end = std::chrono::high_resolution_clock::now();   
     auto runtime = static_cast<float>(std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count()) / (NUM_EXAMPLES * repeat);
     float accuracy = static_cast<float>(matches) / NUM_EXAMPLES * 100.f;
