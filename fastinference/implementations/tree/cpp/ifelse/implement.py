@@ -14,7 +14,7 @@ def contains_float(tree):
         bool: True if any split in tree is floating point, else False
     """
     for node in tree.nodes:
-        if (isinstance(node.split, (np.np.float16, np.np.float32, np.np.float64, float))):
+        if (isinstance(node.split, (np.float16, np.float32, np.float64, float))):
             return True
 
     return False
