@@ -1,21 +1,63 @@
 namespace {{namespace}} {
 
 {% macro ifelse(nodes,node, tree_weight) %}
-    {% if node.prediction is not none %}
+    {% if node.prediction is not none %} 
     {% for pred in node.prediction %}
     pred[{{loop.index-1}}] += {{pred*tree_weight}};
-    {% endfor %}
+    {% endfor %} 
+    return;
     {% else %}   
     if (x[{{node.feature}}] <= {{node.split}}) {
         {{ifelse(nodes,node.leftChild, tree_weight)|indent}}
     } else {
         {{ifelse(nodes,node.rightChild, tree_weight)|indent}}
     }
-    {% endif -%} 
+    {% endif %} 
+{% endmacro %}
+
+{% macro kernel_ifelse(nodes, node, tree_weight, kernel) %}
+    {% if node.prediction is not none %}
+        {% for pred in node.prediction %}
+        pred[{{loop.index-1}}] += {{pred*tree_weight}};
+        {% endfor %}
+        return;
+    {% else %}   
+        if (x[{{node.feature}}] <= {{node.split}}) {
+            {% if kernel[node.leftChild.id] %}
+                {{kernel_ifelse(nodes, node.leftChild, tree_weight, kernel)|indent}}
+            {%- else -%}
+                goto Label{{node.leftChild.id}};
+            {% endif %}
+        } else {
+            {% if kernel[node.rightChild.id] %}
+                {{kernel_ifelse(nodes, node.rightChild, tree_weight, kernel)|indent}}
+            {%- else -%}
+                goto Label{{node.rightChild.id}};
+            {% endif %}
+        }
+    {% endif %} 
+{% endmacro %}
+
+{% macro kernel_only(nodes, node, tree_weight, kernel) %}
+    {%- if not kernel[node.id] -%}
+        Label{{node.id}}: {
+            {{ifelse(nodes,node, tree_weight)|indent}}
+        }
+    {% else %}
+        {% if node.prediction is none %}
+            {{kernel_only(nodes, node.leftChild, tree_weight, kernel)}}
+            {{kernel_only(nodes, node.rightChild, tree_weight, kernel)}}
+        {% endif %}        
+    {% endif %}
 {% endmacro %}
 
 void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
-    {{ifelse(model.nodes,model.head,weight)}}
+    {% if kernel is none %}
+        {{ifelse(model.nodes,model.head,weight)|indent}}
+    {% else %}  
+        {{kernel_ifelse(model.nodes,model.head,weight,kernel)|indent}}
+        {{kernel_only(model.nodes,model.head,weight,kernel)|indent}}
+    {% endif %}
 }
 
 }

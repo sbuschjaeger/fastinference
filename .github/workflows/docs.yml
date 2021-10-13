@@ -17,10 +17,11 @@ jobs:
           submodules: recursive
       - name: Generate the docs
         run: |
-          pip install .
+          pip install --upgrade protobuf
           pip install sphinx 
           pip install karma-sphinx-theme 
           pip install sphinx_rtd_theme
+          pip install .
           cd docs/
           make html
           rm -rf api html latex xml make.bat Doxyfile.bat 

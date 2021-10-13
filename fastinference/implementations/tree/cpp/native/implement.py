@@ -162,7 +162,7 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         namespace (str, optional): The namespace under which this model will be generated. Defaults to "FAST_INFERENCE".
         feature_type (str, optional): The data types of the input features. Defaults to "double".
         label_type (str, optional): The data types of the label. Defaults to "double".
-        round_splits (bool, optional): If True then all splits are rounded towards the next integer. Defaults to False,
+        round_splits (bool, optional): If True then all splits are rounded towards the next integer. Defaults to False.
         infer_types (bool, optional): If True then the smallest data type for index variables is inferred by the overall tree size. Otherwise "unsigned int" is used. Defaults to False.
         reorder_nodes (bool, optional): If True then the nodes in the tree are reorder so that cache set size is respected. You can set the size of the cache set via set_size parameter. Defaults to False.
         set_size (int, optional): The size of the cache set for if reorder_nodes is set to True. Defaults to 8.
