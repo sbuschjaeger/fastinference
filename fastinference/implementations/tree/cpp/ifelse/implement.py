@@ -372,7 +372,7 @@ def createNodeSizeTable(tree, feature_type):
                 splitE1 = int( x[2], 16) +spReturnE
             elif(x[1] == 'splitReturnEmpty'):
                 spReturnE = int( x[2], 16) - leafE
-    #os.system("rm sizeOfNode.cpp")
+    os.system("rm sizeOfNode.cpp")
     os.system("rm sizeOfNode.o")
     os.system("rm sizeOfNode")
 
