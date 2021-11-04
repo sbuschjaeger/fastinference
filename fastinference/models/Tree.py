@@ -73,6 +73,9 @@ class Tree(Model):
 		# Pointer to the root node of this tree
 		self.head = None
 
+		# Create a table to store the size of node
+		self.nodeSizeTable = []
+
 	def predict_proba(self,X):
 		"""Applies this tree to the given data and provides the predicted probabilities for each example in X.
 
