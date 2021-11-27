@@ -55,45 +55,16 @@ def to_implementation(model, out_path, out_name, weight = 1.0, package_name = "f
         if isinstance(model.layers[i], LeakyRelu):
             raise ValueError("LeakyRelu is currently not supported by the `tosa` dialect (https://mlir.llvm.org/docs/Dialects/TOSA/) and hence not supported by iree. You can try a different backend, e.g. cpp.NHWC to compile this model.")
 
-        # if isinstance(layer, Reshape) and len(layer.input_shape) > len(layer.output_shape):
-        #     flatten = layer
-
-        # output_type = input_type
-
-        # if flatten is not None:
-        #     if isinstance(layer, BatchNorm):
-        #         layer.scale = np.moveaxis(layer.scale.reshape(flatten.input_shape), -3, -1).reshape(flatten.output_shape)
-        #         layer.bias = np.moveaxis(layer.bias.reshape(flatten.input_shape), -3, -1).reshape(flatten.output_shape)
-        #     elif isinstance(layer, Step) and isinstance(layer.threshold, np.ndarray):
-        #         layer.threshold = np.moveaxis(layer.threshold.reshape(flatten.input_shape), -3, -1).reshape(flatten.output_shape)
-        #     elif isinstance(layer, Gemm):
-        #         layer.weight = np.moveaxis(
-        #             layer.weight.reshape([layer.weight.shape[0]] + list(flatten.input_shape)),-3,-1
-        #         ).reshape(layer.weight.shape)
-        #         flatten = None
-
         # isinstance(model.layers[i], (Reshape, Conv2D, BatchNorm)) and 
         if len(model.layers[i].output_shape) > 2:
-            # TODO THIS BREAKS FOR REsNEt or any more complex models!
+            # TODO THIS BREAKS FOR ResNet or any more complex models!
             model.layers[i].output_shape = (model.layers[i].output_shape[0], *model.layers[i].output_shape[2:], model.layers[i].output_shape[1])
             if i < len(model.layers) - 1:
                 model.layers[i+1].input_shape = model.layers[i].output_shape
 
         if isinstance(model.layers[i], Gemm):
-            # DEBUG
-            prev = model.layers[-1]
-            # print(model.layers[i].weight.shape)
-            # model.layers[i].weight = np.moveaxis(
-            #     #model.layers[i].weight.reshape([model.layers[i].weight.shape[0]] + list(prev.input_shape)),-3,-1
-            #     model.layers[i].weight, 0,1
-            # ).reshape(model.layers[i].weight.shape)
-            # END DEBUG
-
             model.layers[i].weight = model.layers[i].weight.tolist()
             model.layers[i].bias = model.layers[i].bias.tolist()
-
-            # model.layers[i].weight = model.layers[i].weight[None,:,:].swapaxes(1,2).tolist()
-            # model.layers[i].bias = model.layers[i].bias[None,None,:].tolist()
         
         if isinstance(model.layers[i], Conv2D):
             model.layers[i].weight = model.layers[i].weight.transpose((0, 2, 3, 1)).tolist()
@@ -108,23 +79,6 @@ def to_implementation(model, out_path, out_name, weight = 1.0, package_name = "f
         model.layers[i].input_shape = list(model.layers[i].input_shape)
         model.layers[i].output_shape = list(model.layers[i].output_shape)
 
-        # if isinstance(model.layers[i], BatchNorm):
-        #     if len(model.layers[i].scale.shape) == 1:
-        #         model.layers[i].scale = model.layers[i].scale[None,None,:].tolist()
-        #         model.layers[i].bias = model.layers[i].bias[None,None,:].tolist()
-        #     elif len(model.layers[i].scale.shape) == 2:
-        #         model.layers[i].scale = model.layers[i].scale[None,:,:].tolist()
-        #         model.layers[i].bias = model.layers[i].bias[None,:,:].tolist()
-        #     else:
-        #         model.layers[i].scale = model.layers[i].scale.tolist()
-        #         model.layers[i].bias = model.layers[i].bias.tolist()
-
-
-        # if hasattr(model.layers[i], "weight"):
-        #     model.layers[i].weight = model.layers[i].weight.tolist()
-        
-        # if hasattr(model.layers[i], "bias"):
-        #     model.layers[i].bias = model.layers[i].bias.tolist()
 
     implementation = env.get_template('base.j2').render(
         model = model,
@@ -140,6 +94,11 @@ def to_implementation(model, out_path, out_name, weight = 1.0, package_name = "f
     with open(os.path.join(out_path, "{}.{}".format(model.name,"mlir") ), 'w') as out_file:
         out_file.write(implementation)
 
+    backend = module_utils.BackendInfo(iree_backend)
+    compiled_flatbuffer = compile_str(implementation, input_type="tosa", target_backends=backend.compiler_targets)
+    with open(os.path.join(out_path, "{}.{}".format(model.name,"vm") ), 'wb') as out_file:
+        out_file.write(compiled_flatbuffer)
+
     # with open(os.path.join(out_path, "{}.{}".format(model.name,"mlir") ), 'r') as out_file:
         # implementation = out_file.read()
 
@@ -151,12 +110,6 @@ def to_implementation(model, out_path, out_name, weight = 1.0, package_name = "f
     # model_pred = np.array(model.predict_proba(x[0])[0])
     # print("MODEL PRED WAS: ", model_pred)
     # print("MODEL PRED WAS SHAPE: ", model_pred.shape)
-
-    backend = module_utils.BackendInfo(iree_backend)
-    compiled_flatbuffer = compile_str(implementation, input_type="tosa", target_backends=backend.compiler_targets)
-    with open(os.path.join(out_path, "{}.{}".format(model.name,"vm") ), 'wb') as out_file:
-        out_file.write(compiled_flatbuffer)
-
     # vm_module = ireert.VmModule.from_flatbuffer(compiled_flatbuffer)
 
     # # Register the module with a runtime context.
