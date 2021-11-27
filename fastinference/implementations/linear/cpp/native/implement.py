@@ -98,7 +98,7 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         internal_type = larger_datatype(internal_type, feature_type)
 
         # simplify_array returns in np.arrays, but for the code generation we require lists
-        model.coef = model.coef.tolist()
+        model.coef = model.coef.T.tolist()
         model.intercept = model.intercept.tolist()
 
     env = Environment(
