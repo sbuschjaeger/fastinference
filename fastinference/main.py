@@ -102,7 +102,7 @@ def main():
     # to_implementation(loaded_model, args.out_path, args.out_name, weight = 1.0, **unknown)
 
 if __name__ == '__main__':
-    # sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//SimpleMLP/SimpleMLP.onnx', '--feature_type', 'double', '--out_path', '/tmp/fastinference//SimpleMLP', '--out_name', 'model', '--implementation', 'fpga.binary']
+    #sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//SimpleCNN/SimpleCNN.onnx', '--feature_type', 'double', '--out_path', '/tmp/fastinference//SimpleCNN', '--out_name', 'model', '--implementation', 'iree']
     #sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//DT/DT.json', '--feature_type', 'double', '--out_path', '/tmp/fastinference//DT', '--out_name', 'model', '--implementation', 'cpp.native']
     #sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//DT/DT.json', '--feature_type', 'double', '--out_path', '/tmp/fastinference//DT', '--out_name', 'model', '--implementation', 'cpp.ifelse', '--target_architecture', 'intel', '--kernel_budget', '128', '--kernel_type', 'path']
     #print(sys.argv)

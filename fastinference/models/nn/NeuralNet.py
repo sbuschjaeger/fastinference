@@ -98,6 +98,7 @@ class NeuralNet(Model):
         """
         self.layers = []
 
+        self.path_to_onnx = path_to_onnx
         self.onnx_model = load(path_to_onnx)
         checker.check_model(self.onnx_model)
         graph = shape_inference.infer_shapes(self.onnx_model).graph
@@ -134,6 +135,12 @@ class NeuralNet(Model):
             
             self.layers.append(layer)
             print("input shape is {}".format(input_shape))
+            if hasattr(layer, "weight"):
+                print("weight shape is {}".format(layer.weight.shape))
+            if hasattr(layer, "scale"):
+                print("scale shape is {}".format(layer.scale.shape))
+            if hasattr(layer, "bias"):
+                print("bias shape is {}".format(layer.bias.shape))
             print("output shape is {}".format(layer.output_shape))
             print("")
             input_shape = layer.output_shape
@@ -156,7 +163,9 @@ class NeuralNet(Model):
         opts.intra_op_num_threads = 1
         opts.inter_op_num_threads = 1
         opts.execution_mode = onnxruntime.ExecutionMode.ORT_SEQUENTIAL
-        session = onnxruntime.InferenceSession(self.onnx_model, sess_options=opts)
+        # TODO I guess it would be better to use the actual onnx object instead of loading the file
+        # fpr every prediction.
+        session = onnxruntime.InferenceSession(self.path_to_onnx, sess_options=opts)
         input_name = session.get_inputs()[0].name 
         return session.run([], {input_name: X})
     

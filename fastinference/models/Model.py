@@ -73,8 +73,10 @@ class Model():
 
         if args is None:
             args = [{} for _ in optimizers]
+        elif not isinstance(args, list):
+            args = [args]
 
-        args = [{} if a is None else a for a in args]
+        #args = [{} if a is None else a for a in args]
 
         for opt, arg in zip(optimizers, args):
             run_optimization = dynamic_import("fastinference.optimizers.{}.{}".format(self.category,opt), "optimize")

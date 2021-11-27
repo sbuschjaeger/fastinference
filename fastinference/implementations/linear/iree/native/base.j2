@@ -1,0 +1,17 @@
+module  {
+    func @{{model.name}}_predict(%arg0: tensor<1x1x{{dim}}xf32>) -> tensor<1x1x{{model.num_classes}}xf32> {
+        {# return %arg0 : tensor<1x1x{{model.num_classes}}xf32> #}
+        %coef = "tosa.const"() {value = dense<[ {{weights}} ]> : tensor<1x{{weights|length}}x{{weights[0]|length}}xf32>} : () -> tensor<1x{{weights|length}}x{{weights[0]|length}}xf32>
+        %x = "tosa.const"() {value = dense<[ [ [3.0, 4.0] ] ]> : tensor<1x1x{{weights|length}}xf32>} : () -> tensor<1x1x{{weights|length}}xf32>
+        %intercept = "tosa.const"() {value = dense<[[{{bias}}]]> : tensor<1x1x{{bias|length}}xf32>} : () -> tensor<1x1x{{bias|length}}xf32>
+        %0 = "tosa.matmul"(%arg0, %coef) : (tensor<1x1x{{dim}}xf32>, tensor<1x{{weights|length}}x{{weights[0]|length}}xf32>) -> tensor<1x1x{{weights[0]|length}}xf32>
+        %1 = "tosa.add"(%0, %intercept) : (tensor<1x1x{{bias|length}}xf32>, tensor<1x1x{{bias|length}}xf32>) -> tensor<1x1x{{bias|length}}xf32>
+        {% if weight != 1.0 %}
+        %weight = "tosa.const"() {value = dense<{{weight}}> : tensor<1x1x1xf32>} : () -> tensor<1x1x1xf32>
+        %2 = "tosa.mul"(%1, %weight) {shift = 0 : i32} : (tensor<1x1x{{bias|length}}xf32>, tensor<1x1xf32>) -> tensor<1x1x{{bias|length}}xf32>
+        return %2 : tensor<1x1x{{model.num_classes}}xf32>
+        {% else %}
+        return %1 : tensor<1x1x{{model.num_classes}}xf32>
+        {% endif %}
+    }
+}

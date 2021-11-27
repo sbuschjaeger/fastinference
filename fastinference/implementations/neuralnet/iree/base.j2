@@ -1,0 +1,81 @@
+module  {
+    func @{{model.name}}_predict(%out0: tensor<{{model.layers[0].input_shape|join("x")}}xf32>) -> tensor<{{model.layers[-1].output_shape|join("x")}}xf32> {
+{% for layer in model.layers %}
+    {% set i = loop.index %}
+    {% if layer.name == "gemm" %}
+        %weight{{i}} = "tosa.const"() {value = dense<{{layer.weight}}> : tensor<{{layer.weight|length}}x{{layer.weight[0]|length}}xf32>} : () -> tensor<{{layer.weight|length}}x{{layer.weight[0]|length}}xf32>
+        %bias{{i}} = "tosa.const"() {value = dense<{{layer.bias}}> : tensor<{{layer.bias|length}}xf32>} : () -> tensor<{{layer.bias|length}}xf32>
+        %out{{i}} = "tosa.fully_connected"(%out{{i-1}}, %weight{{i}}, %bias{{i}}): (tensor<{{layer.input_shape|join("x")}}xf32>, tensor<{{layer.weight|length}}x{{layer.weight[0]|length}}xf32>, tensor<{{layer.bias|length}}xf32>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+        {#
+        %weight{{i}} = "tosa.const"() {value = dense<{{layer.weight}}> : tensor<{{layer.weight|length}}x{{layer.weight[0]|length}}x{{layer.weight[0][0]|length}}xf32>} : () -> tensor<{{layer.weight|length}}x{{layer.weight[0]|length}}x{{layer.weight[0][0]|length}}xf32>
+        %bias{{i}} = "tosa.const"() {value = dense<{{layer.bias}}> : tensor<{{layer.bias|length}}x{{layer.bias[0]|length}}x{{layer.bias[0][0]|length}}xf32>} : () -> tensor<{{layer.bias|length}}x{{layer.bias[0]|length}}x{{layer.bias[0][0]|length}}xf32>
+        %tmp{{i}} = "tosa.matmul"(%out{{i-1}}, %weight{{i}}) {shift = 0 : i32} : (tensor<{{layer.input_shape|join("x")}}xf32>, tensor<{{layer.weight|length}}x{{layer.weight[0]|length}}x{{layer.weight[0][0]|length}}xf32>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+        %out{{i}} = "tosa.add"(%tmp{{i}}, %bias{{i}}) : (tensor<{{layer.output_shape|join("x")}}xf32>, tensor<{{layer.output_shape|join("x")}}xf32>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+        #}
+    {% elif layer.name == "sigmoid" %}
+        %out{{i}} = "tosa.Sigmoid"(%out{{i-1}}) : (tensor<{{layer.input_shape|join("x")}}xf32>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+    {% elif layer.name == "relu" %}
+        %out{{i}} = "tosa.reluN"(%out{{i-1}}) {max_fp = 3.40282347E+38 : f32, max_int = 2147483647 : i64} : (tensor<{{layer.input_shape|join("x")}}xf32>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+    {% elif layer.name == "batchnorm" %}
+        %scale_raw{{i}} = "tosa.const"() {value = dense<{{layer.scale}}> : tensor<{{layer.scale|length}}xf32>} : () -> tensor<{{layer.scale|length}}xf32>
+        %bias_raw{{i}} = "tosa.const"() {value = dense<{{layer.bias}}> : tensor<{{layer.bias|length}}xf32>} : () -> tensor<{{layer.bias|length}}xf32>
+        {% if layer.input_shape|length == 2 %}
+            {% set scale_type = layer.input_shape | join("x") + "xf32" %}
+            {% set bias_type = layer.input_shape | join("x") + "xf32" %}
+            %scale{{i}} = "tosa.reshape"(%scale_raw{{i}}) {new_shape = {{layer.input_shape}}} : (tensor<{{layer.scale|length}}xf32>) -> tensor<{{scale_type}}>
+            %bias{{i}} = "tosa.reshape"(%bias_raw{{i}}) {new_shape = {{layer.input_shape}}} : (tensor<{{layer.bias|length}}xf32>) -> tensor<{{bias_type}}>
+        {% else %}
+            {% set scale_type = "1x1x1x" + layer.input_shape[3]|string + "xf32" %}
+            {% set bias_type = "1x1x1x" + layer.input_shape[3]|string + "xf32" %}
+            {#{% set bias_type = layer.input_shape[0]|string + "x" + layer.input_shape[3]|string + "x1x1xf32" %} #}
+            {% set new_shape = [layer.input_shape[0], 1, 1, layer.input_shape[3]] %}
+            %scale{{i}} = "tosa.reshape"(%scale_raw{{i}}) {new_shape = {{new_shape}}} : (tensor<{{layer.scale|length}}xf32>) -> tensor<{{scale_type}}>
+            %bias{{i}} = "tosa.reshape"(%bias_raw{{i}}) {new_shape = {{new_shape}}} : (tensor<{{layer.bias|length}}xf32>) -> tensor<{{bias_type}}>
+        {% endif %}
+        %tmp{{i}} = "tosa.mul"(%out{{i-1}}, %scale{{i}}) {shift = 0 : i32} : (tensor<{{layer.input_shape|join("x")}}xf32>, tensor<{{scale_type}}>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+        %out{{i}} = "tosa.add"(%tmp{{i}}, %bias{{i}}) : (tensor<{{layer.input_shape|join("x")}}xf32>, tensor<{{bias_type}}>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+        {#
+        {% set scale_type = layer.scale|length|string + "x" + layer.scale[0]|length|string + "x" + layer.scale[0][0]|length|string + "xf32" %}
+        {% set bias_type = layer.bias|length|string + "x" + layer.bias[0]|length|string + "x" + layer.bias[0][0]|length|string + "xf32" %} 
+        #}
+    {% elif layer.name == "logsoftmax" %}
+        %max{{i}} = "tosa.reduce_max"(%out{{i-1}}) {axis = 1} : (tensor<{{layer.input_shape|join("x")}}xf32>) -> tensor<1xf32>
+        %diff{{i}} = "tosa.sub"(%out{{i-1}}, %max{{i}}) : (tensor<{{layer.input_shape|join("x")}}xf32>, tensor<1xf32>) -> tensor<{{layer.input_shape|join("x")}}xf32>
+        %exp{{i}} = "tosa.exp"(%diff{{i}}) : (tensor<{{layer.input_shape|join("x")}}xf32>) -> tensor<{{layer.input_shape|join("x")}}xf32>
+        %sum{{i}} = "tosa.reduce_sum"(%exp{{i}}) {axis = 1} : (tensor<{{layer.input_shape|join("x")}}xf32>) -> tensor<1xf32>
+        %log{{i}} = "tosa.log"(%sum{{i}}) : (tensor<1xf32>) -> tensor<1xf32>
+        %out{{i}} = "tosa.sub"(%diff{{i}}, %log{{i}}) : (tensor<{{layer.input_shape|join("x")}}xf32>, tensor<1xf32>) -> tensor<{{layer.input_shape|join("x")}}xf32>
+        {#%rec{{i}} = "tosa.reciprocal"(%sum{{i}}) : (tensor<1x1x1xf32>) -> tensor<1x1x1xf32>#}
+        {#%div{{i}} = "tosa.mul"(%out{{i-1}}, %rec{{i}}) {shift = 0 : i32} : (tensor<{{layer.input_shape|join("x")}}xf32>, tensor<1x1x1xf32>) -> tensor<{{layer.input_shape|join("x")}}xf32>
+        %out{{i}} = "tosa.log"(%div{{i}}) : (tensor<{{layer.input_shape|join("x")}}xf32>) -> tensor<{{layer.input_shape|join("x")}}xf32> #}
+    {% elif layer.name == "averagepool" %}
+        %out{{i}} = "tosa.avg_pool2d"(%out{{i-1}}) {kernel = {{layer.kernel_shape}}, stride = {{layer.strides}}, pad = {{layer.pads}} }: (tensor<{{layer.input_shape|join("x")}}xf32>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+    {% elif layer.name == "maxpool" %}
+        %out{{i}} = "tosa.max_pool2d"(%out{{i-1}}) {kernel = {{layer.kernel_shape}}, stride = {{layer.strides}}, pad = {{layer.pads}} }: (tensor<{{layer.input_shape|join("x")}}xf32>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+    {% elif layer.name == "conv2d" %}
+        {% set weight_type = layer.weight|length|string + "x" + layer.weight[0]|length|string + "x" + layer.weight[0][0]|length|string + "x" + layer.weight[0][0][0]|length|string + "xf32" %}
+        %weight{{i}} = "tosa.const"() {value = dense<{{layer.weight}}> : tensor<{{weight_type}}>} : () -> tensor<{{weight_type}}>
+        {#%bias{{i}} = "tosa.const"() {value = dense<{{layer.bias}}> : tensor<{{layer.bias|length}}x{{layer.bias[0]|length}}x{{layer.bias[0][0]|length}}xf32>} : () -> tensor<{{layer.bias|length}}x{{layer.bias[0]|length}}x{{layer.bias[0][0]|length}}xf32>#}
+        %bias{{i}} = "tosa.const"() {value = dense<{{layer.bias}}> : tensor<{{layer.bias|length}}xf32>} : () -> tensor<{{layer.bias|length}}xf32>
+        %out{{i}} = "tosa.conv2d"(%out{{i-1}}, %weight{{i}}, %bias{{i}}) {stride = {{layer.strides}}, pad = {{layer.pads}}, dilation = [1, 1] } : (tensor<{{layer.input_shape|join("x")}}xf32>, tensor<{{weight_type}}>, tensor<{{layer.bias|length}}xf32>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+        {# quantization_info = {?} #}
+    {% elif layer.name == "reshape" %}
+        {% if layer.input_shape|length > layer.output_shape|length %}
+        {% set ttype = layer.input_shape[0]|string + "x" + layer.input_shape[3]|string + "x" + layer.input_shape[1]|string + "x" + layer.input_shape[2]|string + "xf32" %}
+        %tvals{{i}} = "tosa.const"() {value = dense<[0, 3, 1, 2]> : tensor<4xi32>} : () -> tensor<4xi32>
+        %out{{i}}_trans = "tosa.transpose"(%out{{i-1}}, %tvals{{i}}): (tensor<{{layer.input_shape|join("x")}}xf32>,tensor<4xi32>) -> tensor<{{ttype}}>
+        %out{{i}} = "tosa.reshape"(%out{{i}}_trans) {new_shape = {{layer.output_shape}}}: (tensor<{{ttype}}>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+        {% else %}
+        %out{{i}} = "tosa.reshape"(%out{{i-1}}) {new_shape = {{layer.output_shape}}}: (tensor<{{layer.input_shape|join("x")}}xf32>) -> tensor<{{layer.output_shape|join("x")}}xf32>
+        {% endif %}
+    {% endif %}
+{% endfor %}
+    {% if weight != 1.0 %}
+        %weight = "tosa.const"() {value = dense<{{weight}}> : tensor<1x1x1xf32>} : () -> tensor<1x1x1xf32>
+        %out{{model.layers|length + 1}} = "tosa.mul"(%out{{model.layers|length}}, %weight) {shift = 0 : i32} : (tensor<{{layer.output_shape|join("x")}}xf32>, tensor<1xf32>) -> tensor<{{model.layers[-1].output_shape|join("x")}}xf32>
+        return %out{{model.layers|length + 1}} : tensor<{{model.layers[-1].output_shape|join("x")}}xf32>
+    {% else %}
+        return %out{{model.layers|length}} : tensor<{{model.layers[-1].output_shape|join("x")}}xf32>
+    {% endif %}
+    }
+}

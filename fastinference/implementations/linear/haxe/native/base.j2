@@ -1,0 +1,20 @@
+package {{package_name}};
+
+class {{model.name}} {
+    var coef:Array<Array<{{internal_type}}>> = [ {% for c1 in model.coef %}{{c1}}{% if not loop.last %}, {% endif %}{% endfor %} ];
+    var intercept:Array<{{internal_type}}> = {{model.intercept}};
+
+    function predict(x:Array<{{feature_type}}>, pred:Array<{{label_type}}>) {
+        for (j in 0...{{model.num_classes}}) {
+            var sum:{{internal_type}} = intercept[j]; 
+            for (i in 0...{{model.coef[0]|length}}) {
+                sum = sum + coef[j][i] * x[i];
+            }
+            {% if weight != 1.0 %}
+            pred[j] = pred[j] + {{weight}} * sum; 
+            {% else %}
+            pred[j] = pred[j] + sum; 
+            {% endif %}
+        }
+    }
+}

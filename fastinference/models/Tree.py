@@ -73,6 +73,9 @@ class Tree(Model):
 		# Pointer to the root node of this tree
 		self.head = None
 
+		# TODO QUICK FIX
+		self.n_classes_ = num_classes
+
 	def predict_proba(self,X):
 		"""Applies this tree to the given data and provides the predicted probabilities for each example in X.
 
@@ -118,6 +121,10 @@ class Tree(Model):
 		tree.category = "tree"
 
 		sk_tree = sk_model.tree_
+		
+		# TODO THIS IS A QUICK FIX!!
+		tree.classes_ = sk_model.classes_
+		#tree.n_classes_ = sk_tree.n_classes_
 
 		node_ids = [0]
 		tmp_nodes = [Node()]
@@ -254,6 +261,7 @@ class Tree(Model):
 		"""
 		model_dict = super().to_dict()
 		model_dict["model"] = self._to_dict(self.head)
+		
 		return model_dict
 
 	def populate_path_probs(self, node = None, curPath = None, allPaths = None, pathNodes = None, pathLabels = None):

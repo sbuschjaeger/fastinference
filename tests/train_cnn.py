@@ -134,19 +134,22 @@ class SimpleCNN(pl.LightningModule):
 
     def cross_entropy_loss(self, logits, labels):
         return F.nll_loss(logits, labels)
+        #return None
 
     def training_step(self, train_batch, batch_idx):
         x, y = train_batch
         logits = self.forward(x)
         loss = self.cross_entropy_loss(logits, y)
-        self.log('train_loss', loss)
+        if loss is not None:
+            self.log('train_loss', loss)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
         x, y = val_batch
         logits = self.forward(x)
         loss = self.cross_entropy_loss(logits, y)
-        self.log('val_loss', loss)
+        if loss is not None:
+            self.log('val_loss', loss)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
@@ -215,7 +218,10 @@ def sanatize_onnx(model):
 
 def eval_model(model, x_train, y_train, x_test, y_test, out_path, name):
     print("Fitting {}".format(name))
-
+    print(x_train.shape)
+    # x_train = x_train[:, 0:36]
+    # x_test = x_test[:, 0:36]
+    print(x_train.shape)
     x_train_tensor = torch.from_numpy(x_train).float()
     y_train_tensor = torch.from_numpy(y_train).long()
     train_dataloader = DataLoader(TensorDataset(x_train_tensor, y_train_tensor), batch_size=64)
@@ -231,8 +237,10 @@ def eval_model(model, x_train, y_train, x_test, y_test, out_path, name):
     time_diff = (end_time - start_time)
     batch_time = time_diff.total_seconds() * 1000
     accuracy = accuracy_score(y_test, preds)*100.0
+    #accuracy = 0
 
     dummy_x = torch.randn(1, x_train.shape[1], requires_grad=False)
+    print(dummy_x.shape)
     start_time = datetime.datetime.now()
     preds = []
     for _ in range(x_test.shape[0]):
@@ -263,8 +271,8 @@ def eval_model(model, x_train, y_train, x_test, y_test, out_path, name):
     # up with float weights after sanatizing -.-) 
     model = sanatize_onnx(model)
 
-    print(model)
-    print(model._modules["conv1"].weight.data)
+    # print(model)
+    # print(model._modules["conv1"].weight.data)
 
     # https://github.com/pytorch/pytorch/issues/49229
     # set torch.onnx.TrainingMode.PRESERVE

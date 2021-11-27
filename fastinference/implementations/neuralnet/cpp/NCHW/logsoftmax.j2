@@ -10,10 +10,10 @@
   }
   float sum = 0;
   for (int d = 0; d < {{ output_size }}; d++) {
-    layer_{{ layer_id }}_output[d] = expf(layer_{{ layer_id - 1 }}_output[d] - max);
+    layer_{{ layer_id }}_output[d] = std::exp(layer_{{ layer_id - 1 }}_output[d] - max);
     sum += layer_{{ layer_id }}_output[d];
   }
   for (int d = 0; d < {{ output_size }}; d++) {
-    layer_{{ layer_id }}_output[d] = logf(layer_{{ layer_id }}_output[d] / sum);
+    layer_{{ layer_id }}_output[d] = std::log(layer_{{ layer_id }}_output[d] / sum);
   }
 }

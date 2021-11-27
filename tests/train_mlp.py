@@ -74,13 +74,13 @@ class SimpleMLP(pl.LightningModule):
             self.activation_2 = BinaryTanh()
             self.layer_3 = BinaryLinear(256, n_classes)
         else:
-            self.layer_1 = torch.nn.Linear(input_dim, 128)
-            self.bn_1 = nn.BatchNorm1d(128)
+            self.layer_1 = torch.nn.Linear(input_dim, 8)
+            self.bn_1 = nn.BatchNorm1d(8)
             self.activation_1 = nn.ReLU()
-            self.layer_2 = torch.nn.Linear(128, 256)
-            self.bn_2 = nn.BatchNorm1d(256)
+            self.layer_2 = torch.nn.Linear(8, 16)
+            self.bn_2 = nn.BatchNorm1d(16)
             self.activation_2 = nn.ReLU()
-            self.layer_3 = torch.nn.Linear(256, n_classes)
+            self.layer_3 = torch.nn.Linear(16, n_classes)
 
     def forward(self, x):
         # batch_size, _ = x.size()

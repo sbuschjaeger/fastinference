@@ -1,5 +1,6 @@
 namespace {{namespace}} {
 
+{# Regular if-else implementation. Recursivley call the ifelse macro with the correct indent and thats it. A return statement is added to the predictions to make sure this macro work well with labels / gotos (used below) #}
 {% macro ifelse(nodes,node, tree_weight) %}
     {% if node.prediction is not none %} 
     {% for pred in node.prediction %}
@@ -15,6 +16,7 @@ namespace {{namespace}} {
     {% endif %} 
 {% endmacro %}
 
+{# If-else implementation with goto labels. Whenever a node is not in the computation kernel the generation of the if-else tree. A return statement is added to the predictions to make sure this macro work well with labels / gotos (used below) #}
 {% macro kernel_ifelse(nodes, node, tree_weight, kernel) %}
     {% if node.prediction is not none %}
         {% for pred in node.prediction %}
@@ -38,6 +40,7 @@ namespace {{namespace}} {
     {% endif %} 
 {% endmacro %}
 
+{# Only generate the code for the goto-labels from above. If a node is not part of the computation kernel, then use the ifelse macro to generate the remaining parts of the tree. #}
 {% macro kernel_only(nodes, node, tree_weight, kernel) %}
     {%- if not kernel[node.id] -%}
         Label{{node.id}}: {

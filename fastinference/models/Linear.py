@@ -38,7 +38,7 @@ class Linear(Model):
         """
         model = Linear(len(set(sk_model.classes_)), accuracy, name)
         model.intercept = sk_model.intercept_
-        model.coef = sk_model.coef_
+        model.coef = sk_model.coef_.T
 
         return model
     
@@ -53,8 +53,9 @@ class Linear(Model):
             Tree: The newly generated linear model.
         """
         model = Linear(data["num_classes"], data.get("accuracy", None), data.get("name", "Model"))
-        model.intercept = data["intercept"]
-        model.coef = data["coeff"]
+        model.intercept = np.array(data["intercept"])
+        model.coef = np.array(data["coeff"])
+
         return model
 
     def predict_proba(self,X):
