@@ -119,6 +119,7 @@ def path_sort(tree, budget, target_architecture = "intel"):
     assert target_architecture in ["intel", "arm", "ppc"], "The target architecture must be {intel, arm, ppc}."
     assert budget >= 0, "The budget must be >= 0."
 
+
     kernel = {}
     curSize = 0
     allPath = get_all_pathes(tree)
@@ -141,7 +142,7 @@ def path_sort(tree, budget, target_architecture = "intel"):
                 if curSize >= budget:
                     kernel[nodeid] = False
                 else:
-                    curSize += node_size(tree.nodes[nodeid], tree, target_architecture)
+                    curSize += searchNodeSizeTable(tree, nodeid)
                     kernel[nodeid] = True
     return kernel
 
@@ -182,7 +183,7 @@ def node_sort(tree, budget, target_architecture = "intel"):
     # now L has BFS nodes sorted by probabilities
     while len(L) > 0:
         _, _, node = heapq.heappop(L)
-        curSize += node_size(node, tree, target_architecture)
+        curSize += searchNodeSizeTable(tree, node.id)
         # if the current size is larger than budget already, break.
         if curSize >= budget:
             kernel[node.id] = False
@@ -213,6 +214,10 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         target_architecture (str, optional): The target architecture {intel, arm, ppc} which is used to estimate the node size for kernel optimizations. Defaults to "intel".
     """
 
+    # Give testing data
+    kernel_budget = 100
+    kernel_type = "path"
+
     if round_splits:
         for n in model.nodes:
             if n.prediction is None:
@@ -222,8 +227,10 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         assert target_architecture in ["intel", "arm", "ppc"], "Only {intel, arm, ppc} are currently supported to estimate the size tree nodes."
         assert kernel_type in ["node", "path"], "Only {node, path} kernels are currently supported."
         if kernel_type == "node":
+            createNodeSizeTable(model, feature_type)
             kernel = node_sort(model, kernel_budget, target_architecture)
         elif kernel_type == "path":
+            createNodeSizeTable(model, feature_type)
             kernel = path_sort(model, kernel_budget, target_architecture)
         else:
             kernel = None
@@ -270,3 +277,104 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
 
     with open(os.path.join(out_path, "{}.{}".format(out_name,"h")), 'w') as out_file:
         out_file.write(header)
+
+def getLeafTestCpp(node, feature_type):
+        leafTest = """__attribute__((section("test_leaf_{nid}"))) void test{nid}({feature_type} const * const x, double * pred){\n"""\
+        .replace("{nid}", str(node.id))\
+        .replace("{feature_type}", feature_type)
+        for i in range(len(node.prediction)):
+            leafTest += "\tpred[{i}] += {prob};\n"\
+            .replace("{i}", str(i))\
+            .replace("{prob}", str(node.prediction[i]))
+        leafTest += "\treturn;\n}\n"
+        return leafTest
+    
+def getSplitTestCpp(node, feature_type):
+    nidStr = ''
+    compare = '0'
+    if node.feature == 0:
+        nidStr = '__'
+        compare = '1'
+    nidStr += str(node.id)
+    splitTest = """__attribute__((section("test_split_{nid}"))) unsigned int test{nid}({feature_type} const * const x, double * pred){
+        if( x[{cmp}] <= 20 ){
+            if( x[{feature}] <= {value} ){
+                return 10;
+            }
+            else { return 40; }
+        }
+        else{ return 30; }
+    } \n"""\
+    .replace("{nid}",nidStr)\
+    .replace("{value}",str(node.split))\
+    .replace("{feature}",str(node.feature))\
+    .replace("{cmp}",compare)\
+    .replace("{feature_type}", feature_type)
+    return splitTest
+    
+def createNodeSizeTable(tree, feature_type):
+    #initialize node size table
+    tree.nodeSizeTable = []
+    #empty section define
+    cppStr = """__attribute__((section("leafEmpty"))) void emp({feature_type} const * const x, double * pred){} \n"""\
+        .replace("{feature_type}", str(feature_type))
+    cppStr += """__attribute__((section("splitReturnEmpty"))) unsigned int sp_return_emp({feature_type} const * const x, double * pred){
+        return 40;
+        } \n"""\
+        .replace("{feature_type}", feature_type)
+    cppStr += """__attribute__((section("splitEmpty"))) unsigned int sp_emp({feature_type} const * const x, double * pred){
+        if( x[0] <= 20 ){
+            return 10;
+        }
+        else{ return 30; }
+    } \n"""\
+    .replace("{feature_type}", feature_type)
+    cppStr += """__attribute__((section("splitEmpty1"))) unsigned int sp_emp1({feature_type} const * const x, double * pred){
+        if( x[1] <= 20 ){
+            return 10;
+        }
+        else{ return 30; }
+    } \n"""\
+    .replace("{feature_type}", feature_type)
+    #create section file
+    for i in range(len(tree.nodes)):
+        if tree.nodes[i].prediction is None:
+            cppStr += getSplitTestCpp(tree.nodes[i], feature_type)
+        else:
+            cppStr += getLeafTestCpp(tree.nodes[i], feature_type)
+    f = open("sizeOfNode.cpp", "w")
+    f.write(cppStr)
+    f.close()
+    os.system("g++ sizeOfNode.cpp -c -std=c++11 -Wall -O3 -funroll-loops -ftree-vectorize")
+    os.system("objdump -h sizeOfNode.o > sizeOfNode")
+    #read sizeOfNode
+    f = open("sizeOfNode", "r")
+    lineList = f.readlines()
+    leafE = 0
+    splitE = 0 
+    splitE1 = 0
+    spReturnE = 0
+    for i in range(len(lineList)):
+        x = lineList[i].split()
+        if(len(x) > 3):
+            if(x[1][:4] == "test"):
+                if x[1][5:9] == 'leaf':
+                    tree.nodeSizeTable.append([ int(x[1][10:]), int( x[2], 16) - leafE])
+                elif x[1][5:12] == 'split__':
+                    tree.nodeSizeTable.append([ int(x[1][13:]), int( x[2], 16) - splitE1])
+                else:
+                    tree.nodeSizeTable.append([ int(x[1][11:]), int( x[2], 16) - splitE])
+            elif(x[1] == 'leafEmpty'):
+                leafE = int( x[2], 16)
+            elif(x[1] == 'splitEmpty'):
+                splitE = int( x[2], 16) +spReturnE
+            elif(x[1] == 'splitEmpty1'):
+                splitE1 = int( x[2], 16) +spReturnE
+            elif(x[1] == 'splitReturnEmpty'):
+                spReturnE = int( x[2], 16) - leafE
+    os.system("rm sizeOfNode.cpp")
+    os.system("rm sizeOfNode.o")
+    os.system("rm sizeOfNode")
+
+def searchNodeSizeTable(tree, id):
+    return tree.nodeSizeTable[id][1]

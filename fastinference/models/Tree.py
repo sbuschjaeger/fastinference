@@ -75,6 +75,8 @@ class Tree(Model):
 
 		# TODO QUICK FIX
 		self.n_classes_ = num_classes
+		# Create a table to store the size of node
+		self.nodeSizeTable = []
 
 	def predict_proba(self,X):
 		"""Applies this tree to the given data and provides the predicted probabilities for each example in X.

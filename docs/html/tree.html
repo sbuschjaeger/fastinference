@@ -46,7 +46,7 @@
 <li class="toctree-l2"><a class="reference internal" href="discriminant.html">DiscriminantAnalysis</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Tree</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#available-optimizations">Available optimizations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#the-tree-object">The Tree object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-fastinference.models.Tree">The Tree object</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ensemble.html">Ensemble</a></li>
@@ -87,9 +87,143 @@
 <p>Some words about trees.</p>
 <section id="available-optimizations">
 <h2>Available optimizations<a class="headerlink" href="#available-optimizations" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="fastinference.optimizers.tree.swap.optimize">
+<span class="sig-prename descclassname"><span class="pre">fastinference.optimizers.tree.swap.</span></span><span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.optimizers.tree.swap.optimize" title="Permalink to this definition"></a></dt>
+<dd><p>Performs swap optimization. Swaps two child nodes if the probability to visit the left tree is smaller than the probability to visit the right tree. This way, the probability to visit the left tree is maximized which in-turn improves the branch-prediction during pipelining in the CPU.
+You can activate this optimization by simply passing <code class="code docutils literal notranslate"><span class="pre">&quot;swap&quot;</span></code> to the optimizer, e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">loaded_model</span> <span class="o">=</span> <span class="n">fastinference</span><span class="o">.</span><span class="n">Loader</span><span class="o">.</span><span class="n">model_from_file</span><span class="p">(</span><span class="s2">&quot;/my/nice/tree.json&quot;</span><span class="p">)</span>
+<span class="n">loaded_model</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="s2">&quot;swap&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Reference:</dt><dd><p>Buschjäger, Sebastian, et al. “Realization of random forest for real-time evaluation through tree framing.” 2018 IEEE International Conference on Data Mining (ICDM). IEEE, 2018.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> (<a class="reference internal" href="#fastinference.models.Tree.Tree" title="fastinference.models.Tree.Tree"><em>Tree</em></a>) – The tree model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The tree model with swapped nodes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fastinference.models.Tree.Tree" title="fastinference.models.Tree.Tree">Tree</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="the-tree-object">
-<h2>The Tree object<a class="headerlink" href="#the-tree-object" title="Permalink to this headline"></a></h2>
+<section id="module-fastinference.models.Tree">
+<span id="the-tree-object"></span><h2>The Tree object<a class="headerlink" href="#module-fastinference.models.Tree" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fastinference.models.Tree.Node">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fastinference.models.Tree.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><a class="headerlink" href="#fastinference.models.Tree.Node" title="Permalink to this definition"></a></dt>
+<dd><p>A single node of a Decision Tree. There is nothing fancy going on here. It stores all the relevant attributes of a node.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Tree.Node.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Tree.Node.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a new node. All attributes are initialize to None.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fastinference.models.Tree.Tree">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">fastinference.models.Tree.</span></span><span class="sig-name descname"><span class="pre">Tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Model'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Tree.Tree" title="Permalink to this definition"></a></dt>
+<dd><p>A Decision Tree implementation. There is nothing fancy going on here. It stores all nodes in an array <code class="code docutils literal notranslate"><span class="pre">self.nodes</span></code> and has a pointer <code class="code docutils literal notranslate"><span class="pre">self.head</span></code> which points to the root node of the tree. Per construction it is safe to assume that <code class="code docutils literal notranslate"><span class="pre">self.head</span> <span class="pre">=</span> <span class="pre">self.nodes[0]</span></code>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Tree.Tree.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Model'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Tree.Tree.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of a tree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_classes</strong> (<em>int</em>) – The number of classes this tree has been trained on.</p></li>
+<li><p><strong>model_accuracy</strong> (<em>float</em><em>, </em><em>optional</em>) – The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of this model. Defaults to “Model”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Tree.Tree.from_dict">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Tree.Tree.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a new tree from the given dictionary. It is assumed that a tree has previously been stored with the <a class="reference internal" href="#fastinference.models.Tree.Tree.to_dict" title="fastinference.models.Tree.Tree.to_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Tree.to_dict()</span></code></a> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – The dictionary from which this tree should be generated.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The newly generated tree.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fastinference.models.Tree.Tree" title="fastinference.models.Tree.Tree">Tree</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Tree.Tree.from_sklearn">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_sklearn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sk_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Model'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensemble_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Tree.Tree.from_sklearn" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a new tree from an sklearn tree.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sk_model</strong> (<em>DecisionTreeClassifier</em>) – A DecisionTreeClassifier trained in sklearn.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of this model. Defaults to “Model”.</p></li>
+<li><p><strong>accuracy</strong> (<em>float</em><em>, </em><em>optional</em>) – The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.</p></li>
+<li><p><strong>ensemble_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Indicates from which sciki-learn ensemble (e.g. <code class="code docutils literal notranslate"><span class="pre">RandomForestClassifier</span></code>, <code class="code docutils literal notranslate"><span class="pre">AdaBoostClassifier_SAMME.R</span></code>, <code class="code docutils literal notranslate"><span class="pre">AdaBoostClassifier_SAMME</span></code>) this DecisionTreeClassifier has been trained, because the probabilities of the leaf-nodes are interpeted differently for each ensemble. If None is set, then a regular DecisionTreeClassifier is assumed. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The newly generated tree.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fastinference.models.Tree.Tree" title="fastinference.models.Tree.Tree">Tree</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Tree.Tree.populate_path_probs">
+<span class="sig-name descname"><span class="pre">populate_path_probs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curPath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allPaths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathNodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathLabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Tree.Tree.populate_path_probs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Tree.Tree.predict_proba">
+<span class="sig-name descname"><span class="pre">predict_proba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Tree.Tree.predict_proba" title="Permalink to this definition"></a></dt>
+<dd><p>Applies this tree to the given data and provides the predicted probabilities for each example in X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>numpy.array</em>) – A (N,d) matrix where N is the number of data points and d is the feature dimension. If X has only one dimension then a single example is assumed and X is reshaped via <code class="code docutils literal notranslate"><span class="pre">X</span> <span class="pre">=</span> <span class="pre">X.reshape(1,X.shape[0])</span></code></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A (N, c) prediction matrix where N is the number of data points and c is the number of classes</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Tree.Tree.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Tree.Tree.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Stores this tree as a dictionary which can be loaded with <a class="reference internal" href="#fastinference.models.Tree.Tree.from_dict" title="fastinference.models.Tree.Tree.from_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Tree.from_dict()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The dictionary representation of this tree.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
