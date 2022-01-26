@@ -55,8 +55,8 @@ Adding a new model to fastinference is slightly more work. First, you need to im
 .. code-block:: python
 
     class MyModel(Model):
-        def __init__(self, num_classes, accuracy = None, name = "Model"):
-            super().__init__(num_classes, "A-new-category", accuracy, name)
+        def __init__(self, classes, n_features, category, accuracy = None, name = "Model"):
+            super().__init__(classes, n_features, "A-new-category", accuracy, name)
             pass
         
         def predict_proba(self,X):

@@ -34,7 +34,7 @@ def optimize(model, x_prune = None, y_prune = None, file = "", pruning_method = 
         x_prune = df.values
 
     pruner = create_pruner(pruning_method, **kwargs)
-    pruner.prune(x_prune, y_prune, model.models, n_classes = model.num_classes)
+    pruner.prune(x_prune, y_prune, model.models, n_classes = model.n_classes)
 
     model.models = pruner.estimators_
     model.weights_ = pruner.weights_

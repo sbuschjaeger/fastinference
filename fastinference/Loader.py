@@ -30,7 +30,8 @@ def model_to_json(model, out_path, file_name = "model"):
 
     if isinstance(model, fastinference.models.Ensemble.Ensemble):
         data = {
-            "num_classes":model.num_classes,
+            "n_classes":model.n_classes,
+            "classes":model.classes,
             "category":model.category,
             "accuracy":model.accuracy,
             "name":model.name,

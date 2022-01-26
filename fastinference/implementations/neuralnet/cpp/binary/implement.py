@@ -390,7 +390,6 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
     implementation = env.get_template('base.j2').render(
         name = model.name, 
         weight = weight, 
-        num_classes = model.num_classes,
         in_layer_id = 0,
         out_layer_id = len(model.layers),
         feature_type = feature_type,

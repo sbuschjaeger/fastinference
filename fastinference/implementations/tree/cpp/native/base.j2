@@ -10,7 +10,7 @@ struct Node {
     {{int_type}} right;
 };
 
-constexpr {{label_type}} predictions[{{leaf_nodes|length}}][{{model.num_classes}}] = { {% for n in leaf_nodes %}{{ n.prediction|replace('[', '{')|replace(']', '}') }}{% if not loop.last %}, {% endif %}{% endfor %} };
+constexpr {{label_type}} predictions[{{leaf_nodes|length}}][{{model.n_classes}}] = { {% for n in leaf_nodes %}{{ n.prediction|replace('[', '{')|replace(']', '}') }}{% if not loop.last %}, {% endif %}{% endfor %} };
 constexpr Node nodes[{{inner_nodes|length}}] = { {% for n in inner_nodes %}{ {{n.feature}}, {{n.split}}, {{n.left_is_leaf}}, {{n.right_is_leaf}}, {{n.leftChild.id}}, {{n.rightChild.id}}}{% if not loop.last %}, {% endif %}{% endfor %} };
 
 }
@@ -35,7 +35,7 @@ void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }}
         }
     }
 
-    for (unsigned int j = 0; j < {{model.num_classes}}; ++j) {
+    for (unsigned int j = 0; j < {{model.n_classes}}; ++j) {
         pred[j] += {% if weight != 1.0 %} {{model.name}}::predictions[i][j]*{{weight}}; {% else %} {{model.name}}::predictions[i][j]; {% endif %}
 
     }
