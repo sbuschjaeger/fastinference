@@ -112,7 +112,7 @@ class Tree(Model):
 		Returns:
 			Tree: The newly generated tree.
 		"""
-		tree = Tree(sk_model.classes_, sk_model.n_features_, name = name, accuracy=accuracy)
+		tree = Tree(sk_model.classes_, sk_model.n_features_in_, name = name, accuracy=accuracy)
 		
 		tree.nodes = []
 		tree.head = None

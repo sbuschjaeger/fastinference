@@ -37,7 +37,7 @@ class Linear(Model):
         Returns:
             Linear: The newly generated linear model.
         """
-        model = Linear(sk_model.classes_, sk_model.n_features_, accuracy, name)
+        model = Linear(sk_model.classes_, sk_model.n_features_in_, accuracy, name)
         model.intercept = sk_model.intercept_
         model.coef = sk_model.coef_.T
 
