@@ -146,7 +146,7 @@ def get_nodes(model):
             to_expand.append( (cid, False, n.rightChild) )
     return inner_nodes, leaf_nodes
 
-def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", int_type = "unsigned int", round_splits = False, infer_types = False, reorder_nodes = False, set_size = 8, force_cacheline = False, **kwargs):
+def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", int_type = "unsigned int", output_debug = False, infer_types = False, reorder_nodes = False, set_size = 8, force_cacheline = False, **kwargs):
     """Generates a native C++ implementation of the given Tree model. Native means that the tree is represented in an array structure which is iterated via a while-loop. You can use this implementation by simply passing :code:`"cpp.native"` to the implement, e.g.
 
     .. code-block:: python
@@ -162,22 +162,24 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         namespace (str, optional): The namespace under which this model will be generated. Defaults to "FAST_INFERENCE".
         feature_type (str, optional): The data types of the input features. Defaults to "double".
         label_type (str, optional): The data types of the label. Defaults to "double".
-        round_splits (bool, optional): If True then all splits are rounded towards the next integer. Defaults to False.
+        output_debug (bool, optional): If True outputs the given tree in the given folder in a json file called `{model_name}_debug.json`. Useful when debugging optimizations or loading the tree with another tool. Defaults to False.
         infer_types (bool, optional): If True then the smallest data type for index variables is inferred by the overall tree size. Otherwise "unsigned int" is used. Defaults to False.
         reorder_nodes (bool, optional): If True then the nodes in the tree are reorder so that cache set size is respected. You can set the size of the cache set via set_size parameter. Defaults to False.
         set_size (int, optional): The size of the cache set for if reorder_nodes is set to True. Defaults to 8.
         force_cacheline (bool, optional): If True then "padding" nodes are introduced to fill the entire cache line. Defaults to False.
     """
+
+    if output_debug:
+        from fastinference.Loader import model_to_json
+        if out_path is None:
+            out_path = "."
+        model_to_json(model, out_path, "{}_debug.json".format(model.name))
+
     env = Environment(
         loader=FileSystemLoader(os.path.join(os.path.dirname(os.path.abspath(__file__)))),
         trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True
     )
 
-    if round_splits:
-        for n in model.nodes:
-            if n.prediction is None:
-                n.split = np.ceil(n.split).astype(int)
-    
     if reorder_nodes:
         inner_nodes, leaf_nodes = reorder(model, set_size, force_cacheline)
     else:

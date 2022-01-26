@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse,os
+from ctypes.wintypes import DWORD
 from fastinference.models.Ensemble import Ensemble
 import logging
 import json
@@ -30,13 +31,15 @@ def parse_unknown(unknown):
             try:
                 if u.isdigit():
                     u = int(u)
+                elif u in ["True", "true", "False", "false"]:
+                    u = True if u in ["True", "true"] else False
                 else:
                     u = float(u)
             except ValueError:
                 pass
             d[cur_key].append(u)
     
-    # Flatten the dictionary appropriatly
+    # Flatten the dictionary appropriately
     for key in d:
         if isinstance(d[key], list):
             if len(d[key]) == 0:
@@ -65,16 +68,24 @@ def main():
     loaded_model = Loader.model_from_file(args.model)
 
     optimizer_args = []
+    implementation_args = {}
+
     if args.optimize is not None and len(args.optimize) > 0:
         for opt in args.optimize:
             cur_args = {}
-
             for key in list(unknown.keys()):
-                # key would be --pruning:n_estimators 1
-                if ":" in key and key.split(":")[0] == opt:
-                        cur_args[ key.split(":")[1] ] = unknown[key]
-                        del unknown[key]
+                # key would be --optimizer.pruning.n_estimators 1
+                if "." in key and key.split(".")[0] == "optimizer" and key.split(".")[1] == opt:
+                    cur_args[ key.split(".")[2] ] = unknown[key]
+                    del unknown[key]
             optimizer_args.append(cur_args) 
+
+    for key in list(unknown.keys()):
+        # key would be --implementation:quantize 1
+        if "." in key and key.split(".")[0] == "implementation":
+            implementation_args[key.split(".")[1]] = unknown[key]
+            # cur_args[ key.split(":")[1] ] = 
+            del unknown[key]
 
     if isinstance(loaded_model, Ensemble):
         base_optimizer_args = []
@@ -83,7 +94,7 @@ def main():
                 cur_args = {}
 
                 for key in list(unknown.keys()):
-                    # Key to match whould be --base:pruning:n_estimators 1
+                    # Key to match would be --base.pruning.n_estimators 1
                     if ":" in key and key.split(":")[0] == "base":
                         if key.split(":")[1] == opt:
                             cur_args[ key.split(":")[2] ] = unknown[key]
@@ -94,9 +105,9 @@ def main():
         loaded_model.optimize(args.optimize, optimizer_args)
 
     if isinstance(loaded_model, Ensemble):
-        loaded_model.implement(args.out_path, args.out_name, args.implementation, args.baseimplementation, **unknown)
+        loaded_model.implement(args.out_path, args.out_name, args.implementation, args.baseimplementation, **implementation_args)
     else:
-        loaded_model.implement(args.out_path, args.out_name, args.implementation, **unknown)
+        loaded_model.implement(args.out_path, args.out_name, args.implementation, **implementation_args)
 
     # to_implementation = dynamic_import("templates.{}.{}.implement".format(loaded_model.category,args.implementation), "to_implementation")
     # to_implementation(loaded_model, args.out_path, args.out_name, weight = 1.0, **unknown)

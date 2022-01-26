@@ -3,75 +3,98 @@ import numpy as np
 import heapq
 
 from jinja2 import Environment, FileSystemLoader
+from sphinx import subprocess
+    
+def compute_node_sizes(tree, out_path, feature_type = "double", label_type = "double", weight = 1.0, compiler = "g++", objdump = "objdump"):
+    """ Estimates the size of each node (in Bytes) in the tree by compiling dummy code with the given compiler and de-compiling it using objdump. Make sure that `compiler` and `objdump` are set correctly. If you want to use a cross-compiler (e.g. `arm-linux-gnueabihf-gcc`) you can set the path here accordingly. 
 
-def contains_float(tree):
-    """Returns True if the given tree contains any floating point splits.
+    Note 1: This code somewhat assume a gcc/g++ compiler because it uses `-std=c++11 -Wall -O3 -funroll-loops -ftree-vectorize` as compilation options.
+
+    Reference:
+        Chen, Kuan-Hsun et al. "Efficient Realization of Decision Trees for Real-Time Inference" 
+        ACM Transactions on Embedded Computing Systems 2022
 
     Args:
         tree (Tree): The tree.
+        out_path (str): The folder in which the :code:`*.cpp` and :code:`*.h` files are stored.
+        feature_type (str, optional): The data types of the input features. Defaults to "double".
+        label_type (str, optional): The data types of the label. Defaults to "double".
+        weight (float, optional): The weight of this model inside an ensemble. The weight is ignored if it is 1.0, otherwise the prediction is scaled by the respective weight. Defaults to 1.0.
+        compiler (str, optional): The compiler used for compiling the dummy code to determine node sizes. If you want to use a cross-compiler (e.g. `arm-linux-gnueabihf-gcc`) you can set the path here accordingly. Defaults to "g++".
+        objdump (str, optional): The de-compiler used for de-compiling the dummy code to determine node sizes. If you want to use a cross-compiler (e.g. `arm-linux-gnueabihf-gcc`) you can set the path here accordingly. Defaults to "objdump".
 
     Returns:
-        bool: True if any split in tree is floating point, else False
-    """
-    for node in tree.nodes:
-        if (isinstance(node.split, (np.float16, np.float32, np.float64, float))):
-            return True
+        list of int: A list of sizes in Bytes for each node in the given tree.
+    """    
 
-    return False
+    #initialize node size table
+    nodeSizeTable = []
+    
+    env = Environment(
+        loader=FileSystemLoader(os.path.join(os.path.dirname(os.path.abspath(__file__)))),
+    )
 
-def node_size(node, tree, target_architecture = "intel"):
-    """Heuristically determines the node size of the given node on the given architecture.
-    TODO: This MUST be refactored. All estimations are currently most likely wrong. 
+    test_sections = env.get_template('testNodeSize.j2').render(
+        tree = tree,
+        feature_type = feature_type,
+        label_type = label_type,
+        weight = weight, 
+    )
 
-    Args:
-        node (Node): The node whose size should be estimated. 
-        tree (Tree): The tree which contains the given node.
-        target_architecture (str, optional): The target architecture which is used to determine the node size. Should be {arm, intel, ppc}. Defaults to "intel".
+    with open(os.path.join(out_path, "{}.{}".format("sizeOfNode","cpp") ), 'w') as out_file:
+        out_file.write(test_sections)
 
-    Returns:
-        int: The estimated size of the node in Bytes.
-    """
-    assert target_architecture in ["intel", "arm", "ppc"], "The target architecture must be {intel, arm, ppc}."
+    subprocess.call(
+        "{} {} -c -std=c++11 -Wall -O3 -funroll-loops -ftree-vectorize -o {}".format(compiler, os.path.join(out_path, "sizeOfNode.cpp"), os.path.join(out_path, "sizeOfNode.o")), shell=True
+    )
 
-    has_float = contains_float(tree)
-    size = 0
+    subprocess.call(
+        "{} {} -h > {}".format(objdump, os.path.join(out_path, "sizeOfNode.o"), os.path.join(out_path, "sizeOfNode")), shell=True
+    )
 
-    if node.prediction is not None:
-        if not has_float and target_architecture == "arm":
-            size += 2*4
-        elif has_float and target_architecture == "arm":
-            size += 2*4
-        elif not has_float and target_architecture == "intel":
-            size += 10
-        elif has_float and target_architecture == "intel":
-            size += 10
-        elif not has_float and target_architecture == "ppc":
-            size += 2*4
-        elif has_float and target_architecture == "ppc":
-            size += 2*4
-    else:
-        # In O0, the basic size of a split node is 4 instructions for loading.
-        # Since a split node must contain a pair of if-else statements,
-        # one instruction for branching is not avoidable.
-        if not has_float and target_architecture == "arm":
-            # this is for arm int (ins * bytes)
-            size += 5*4
-        elif has_float and target_architecture == "arm":
-            # this is for arm float
-            size += 8*4
-        elif not has_float and target_architecture == "ppc":
-            # this is for ppc int (ins * bytes)
-            size += 5*4
-        elif has_float and target_architecture == "ppc":
-            # this is for ppc float
-            size += 8*4
-        elif not has_float and target_architecture == "intel":
-            # this is for intel integer (bytes)
-            size += 28
-        elif has_float and target_architecture == "intel":
-            # this is for intel float (bytes)
-            size += 17
-    return size
+    #read sizeOfNode
+    f = open(os.path.join(out_path, "sizeOfNode"), "r")
+    lineList = f.readlines()
+    leafE = 0
+    splitE = 0 
+    splitE1 = 0
+    spReturnE = 0
+    for i in range(len(lineList)):
+        x = lineList[i].split()
+        if(len(x) > 3):
+            if(x[1][:4] == "test"):
+                if x[1][5:9] == 'leaf':
+                    nodeSizeTable.append([ int(x[1][10:]), int( x[2], 16) - leafE])
+                elif x[1][5:12] == 'split__':
+                    nodeSizeTable.append([ int(x[1][13:]), int( x[2], 16) - splitE1])
+                else:
+                    nodeSizeTable.append([ int(x[1][11:]), int( x[2], 16) - splitE])
+            elif(x[1] == 'leafEmpty'):
+                leafE = int( x[2], 16)
+            elif(x[1] == 'splitEmpty'):
+                splitE = int( x[2], 16) +spReturnE
+            elif(x[1] == 'splitEmpty1'):
+                splitE1 = int( x[2], 16) +spReturnE
+            elif(x[1] == 'splitReturnEmpty'):
+                spReturnE = int( x[2], 16) - leafE
+    
+    # Cleanup temp files. Should not be necessary since we are probably inside a temp folder anyway
+    # try:
+    #     os.remove(os.path.join(out_path, "sizeOfNode.cpp"))
+    # except OSError:
+    #     pass
+
+    # try:
+    #     os.remove(os.path.join(out_path, "sizeOfNode.o"))
+    # except OSError:
+    #     pass
+
+    # try:
+    #     os.remove(os.path.join(out_path, "sizeOfNode"))
+    # except OSError:
+    #     pass
+
+    return [e[1] for e in nodeSizeTable]
 
 def get_all_pathes(tree):
     """Returns all pathes from the root node the each leaf node in the given tree with the associated node probabilities.
@@ -102,7 +125,7 @@ def get_all_pathes(tree):
 
     return all_pathes
 
-def path_sort(tree, budget, target_architecture = "intel"):
+def path_sort(tree, budget, node_size):
     """Computes the nodes in the given tree which should be placed in the computation kernel given the budget by looking at the probability of entire pathes.
 
     Reference:
@@ -116,7 +139,6 @@ def path_sort(tree, budget, target_architecture = "intel"):
     Returns:
         dict: A dictionary which maps the node ids to True (=in Kernel) or False (=not in Kernel).
     """
-    assert target_architecture in ["intel", "arm", "ppc"], "The target architecture must be {intel, arm, ppc}."
     assert budget >= 0, "The budget must be >= 0."
 
 
@@ -142,11 +164,11 @@ def path_sort(tree, budget, target_architecture = "intel"):
                 if curSize >= budget:
                     kernel[nodeid] = False
                 else:
-                    curSize += searchNodeSizeTable(tree, nodeid)
+                    curSize += node_size[nodeid]
                     kernel[nodeid] = True
     return kernel
 
-def node_sort(tree, budget, target_architecture = "intel"):
+def node_sort(tree, budget, node_size):
     """Computes the nodes in the given tree which should be placed in the computation kernel given the budget by looking at the probability of single nodes.
 
     Reference:
@@ -160,7 +182,6 @@ def node_sort(tree, budget, target_architecture = "intel"):
     Returns:
         dict: A dictionary which maps the node ids to True (=in Kernel) or False (=not in Kernel).
     """
-    assert target_architecture in ["intel", "arm", "ppc"], "The target architecture must be {intel, arm, ppc}."
     assert budget >= 0, "The budget must be >= 0."
 
     kernel = {}
@@ -183,7 +204,7 @@ def node_sort(tree, budget, target_architecture = "intel"):
     # now L has BFS nodes sorted by probabilities
     while len(L) > 0:
         _, _, node = heapq.heappop(L)
-        curSize += searchNodeSizeTable(tree, node.id)
+        curSize += node_size[node.id]
         # if the current size is larger than budget already, break.
         if curSize >= budget:
             kernel[node.id] = False
@@ -192,7 +213,7 @@ def node_sort(tree, budget, target_architecture = "intel"):
 
     return kernel
 
-def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", round_splits = False, kernel_budget = None, kernel_type = None, target_architecture = "intel", **kwargs):
+def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", kernel_budget = None, kernel_type = None, output_debug = False, target_compiler = "g++", target_objdump = "objdump",**kwargs):
     """Generates a (unrolled) C++ implementation of the given Tree model. Unrolled means that the tree is represented in an if-then-else structure without any arrays. You can use this implementation by simply passing :code:`"cpp.ifelse"` to the implement, e.g.
 
     .. code-block:: python
@@ -204,34 +225,32 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         model (Tree): The Tree model to be implemented
         out_path (str): The folder in which the :code:`*.cpp` and :code:`*.h` files are stored.
         out_name (str): The filenames.
-        weight (float, optional): The weight of this model inside an ensemble. The weight is ignored if it is 1.0, otherwise the prediction is scaled by the respective weight.. Defaults to 1.0.
+        weight (float, optional): The weight of this model inside an ensemble. The weight is ignored if it is 1.0, otherwise the prediction is scaled by the respective weight. Defaults to 1.0.
         namespace (str, optional): The namespace under which this model will be generated. Defaults to "FAST_INFERENCE".
         feature_type (str, optional): The data types of the input features. Defaults to "double".
         label_type (str, optional): The data types of the label. Defaults to "double".
-        round_splits (bool, optional): If True then all splits are rounded towards the next integer. Defaults to False.
+        quantize_splits (str, optional): Can be ["rounding", "fixed"] or None.
         kernel_budget (int, optional): The budget in bytes which is allowed in a single kernel. Kernel optimizations are ignored if the budget None. Defaults to None.
         kernel_type (str, optional): The type of kernel optimization. Can be {path, node, None}. Kernel optimizations are ignored if the kernel type is None. Defaults to None.
-        target_architecture (str, optional): The target architecture {intel, arm, ppc} which is used to estimate the node size for kernel optimizations. Defaults to "intel".
+        output_debug (bool, optional): If True outputs the given tree in the given folder in a json file called `{model_name}_debug.json`. Useful when debugging optimizations or loading the tree with another tool. Defaults to False.
+        target_compiler (str, optional): The compiler used for compiling the dummy code to determine node sizes. If you want to use a cross-compiler (e.g. `arm-linux-gnueabihf-gcc`) you can set the path here accordingly. Defaults to "g++".
+        target_objdump (str, optional): The de-compiler used for de-compiling the dummy code to determine node sizes. If you want to use a cross-compiler (e.g. `arm-linux-gnueabihf-gcc`) you can set the path here accordingly. Defaults to "objdump".
     """
 
-    # Give testing data
-    kernel_budget = 100
-    kernel_type = "path"
-
-    if round_splits:
-        for n in model.nodes:
-            if n.prediction is None:
-                n.split = np.ceil(n.split).astype(int)
+    if output_debug:
+        from fastinference.Loader import model_to_json
+        if out_path is None:
+            out_path = "."
+        model_to_json(model, out_path, "{}_debug.json".format(model.name))
 
     if kernel_budget is not None:
-        assert target_architecture in ["intel", "arm", "ppc"], "Only {intel, arm, ppc} are currently supported to estimate the size tree nodes."
         assert kernel_type in ["node", "path"], "Only {node, path} kernels are currently supported."
         if kernel_type == "node":
-            createNodeSizeTable(model, feature_type)
-            kernel = node_sort(model, kernel_budget, target_architecture)
+            node_size = compute_node_sizes(model, out_path, feature_type, label_type, weight, target_compiler, target_objdump)
+            kernel = node_sort(model, kernel_budget, node_size)
         elif kernel_type == "path":
-            createNodeSizeTable(model, feature_type)
-            kernel = path_sort(model, kernel_budget, target_architecture)
+            node_size = compute_node_sizes(model, out_path, feature_type, label_type, weight, target_compiler, target_objdump)
+            kernel = path_sort(model, kernel_budget, node_size)
         else:
             kernel = None
     else:
@@ -262,119 +281,18 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
     )
 
     # The Jinja2 whitespace handling is sometimes very weird. So far I was not able to 
-    # generate code which looked the way I wanted it to look. Hence I sanatize the code
+    # generate code which looked the way I wanted it to look. Hence I sanitize the code
     # manually here. 
     # TODO Make this nicer and make sure that Labels: {} are correctly placed
-    sanatized_impl = ""
+    sanitized_impl = ""
     for line in implementation.split("\n"):
         if len(line) > 0 and not line.isspace():
             if line[0:4] == "    ":
                 line = line[4:]
-            sanatized_impl += line + "\n"
+            sanitized_impl += line + "\n"
 
     with open(os.path.join(out_path, "{}.{}".format(out_name,"cpp") ), 'w') as out_file:
-        out_file.write(sanatized_impl)
+        out_file.write(sanitized_impl)
 
     with open(os.path.join(out_path, "{}.{}".format(out_name,"h")), 'w') as out_file:
         out_file.write(header)
-
-def getLeafTestCpp(node, feature_type):
-        leafTest = """__attribute__((section("test_leaf_{nid}"))) void test{nid}({feature_type} const * const x, double * pred){\n"""\
-        .replace("{nid}", str(node.id))\
-        .replace("{feature_type}", feature_type)
-        for i in range(len(node.prediction)):
-            leafTest += "\tpred[{i}] += {prob};\n"\
-            .replace("{i}", str(i))\
-            .replace("{prob}", str(node.prediction[i]))
-        leafTest += "\treturn;\n}\n"
-        return leafTest
-    
-def getSplitTestCpp(node, feature_type):
-    nidStr = ''
-    compare = '0'
-    if node.feature == 0:
-        nidStr = '__'
-        compare = '1'
-    nidStr += str(node.id)
-    splitTest = """__attribute__((section("test_split_{nid}"))) unsigned int test{nid}({feature_type} const * const x, double * pred){
-        if( x[{cmp}] <= 20 ){
-            if( x[{feature}] <= {value} ){
-                return 10;
-            }
-            else { return 40; }
-        }
-        else{ return 30; }
-    } \n"""\
-    .replace("{nid}",nidStr)\
-    .replace("{value}",str(node.split))\
-    .replace("{feature}",str(node.feature))\
-    .replace("{cmp}",compare)\
-    .replace("{feature_type}", feature_type)
-    return splitTest
-    
-def createNodeSizeTable(tree, feature_type):
-    #initialize node size table
-    tree.nodeSizeTable = []
-    #empty section define
-    cppStr = """__attribute__((section("leafEmpty"))) void emp({feature_type} const * const x, double * pred){} \n"""\
-        .replace("{feature_type}", str(feature_type))
-    cppStr += """__attribute__((section("splitReturnEmpty"))) unsigned int sp_return_emp({feature_type} const * const x, double * pred){
-        return 40;
-        } \n"""\
-        .replace("{feature_type}", feature_type)
-    cppStr += """__attribute__((section("splitEmpty"))) unsigned int sp_emp({feature_type} const * const x, double * pred){
-        if( x[0] <= 20 ){
-            return 10;
-        }
-        else{ return 30; }
-    } \n"""\
-    .replace("{feature_type}", feature_type)
-    cppStr += """__attribute__((section("splitEmpty1"))) unsigned int sp_emp1({feature_type} const * const x, double * pred){
-        if( x[1] <= 20 ){
-            return 10;
-        }
-        else{ return 30; }
-    } \n"""\
-    .replace("{feature_type}", feature_type)
-    #create section file
-    for i in range(len(tree.nodes)):
-        if tree.nodes[i].prediction is None:
-            cppStr += getSplitTestCpp(tree.nodes[i], feature_type)
-        else:
-            cppStr += getLeafTestCpp(tree.nodes[i], feature_type)
-    f = open("sizeOfNode.cpp", "w")
-    f.write(cppStr)
-    f.close()
-    os.system("g++ sizeOfNode.cpp -c -std=c++11 -Wall -O3 -funroll-loops -ftree-vectorize")
-    os.system("objdump -h sizeOfNode.o > sizeOfNode")
-    #read sizeOfNode
-    f = open("sizeOfNode", "r")
-    lineList = f.readlines()
-    leafE = 0
-    splitE = 0 
-    splitE1 = 0
-    spReturnE = 0
-    for i in range(len(lineList)):
-        x = lineList[i].split()
-        if(len(x) > 3):
-            if(x[1][:4] == "test"):
-                if x[1][5:9] == 'leaf':
-                    tree.nodeSizeTable.append([ int(x[1][10:]), int( x[2], 16) - leafE])
-                elif x[1][5:12] == 'split__':
-                    tree.nodeSizeTable.append([ int(x[1][13:]), int( x[2], 16) - splitE1])
-                else:
-                    tree.nodeSizeTable.append([ int(x[1][11:]), int( x[2], 16) - splitE])
-            elif(x[1] == 'leafEmpty'):
-                leafE = int( x[2], 16)
-            elif(x[1] == 'splitEmpty'):
-                splitE = int( x[2], 16) +spReturnE
-            elif(x[1] == 'splitEmpty1'):
-                splitE1 = int( x[2], 16) +spReturnE
-            elif(x[1] == 'splitReturnEmpty'):
-                spReturnE = int( x[2], 16) - leafE
-    os.system("rm sizeOfNode.cpp")
-    os.system("rm sizeOfNode.o")
-    os.system("rm sizeOfNode")
-
-def searchNodeSizeTable(tree, id):
-    return tree.nodeSizeTable[id][1]

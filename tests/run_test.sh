@@ -47,24 +47,28 @@ case $i in
     BINARIZE="${i#*=}"
     shift # past argument=value
     ;;
-    --implementation=*)
-    FIOPTIONS="${FIOPTIONS} --implementation ${i#*=}"
-    shift # past argument=value
-    ;;
-    --baseimplementation=*)
-    FIOPTIONS="${FIOPTIONS} --baseimplementation ${i#*=}"
-    shift # past argument=value
-    ;;
-    --optimize=*)
-    FIOPTIONS="${FIOPTIONS} --optimize ${i#*=}"
-    shift # past argument=value
-    ;;
-    --baseoptimize=*)
-    FIOPTIONS="${FIOPTIONS} --baseoptimize ${i#*=}"
-    shift # past argument=value
-    ;;
+    # --implementation=*)
+    # FIOPTIONS="${FIOPTIONS} --implementation ${i#*=}"
+    # shift # past argument=value
+    # ;;
+    # --baseimplementation=*)
+    # FIOPTIONS="${FIOPTIONS} --baseimplementation ${i#*=}"
+    # shift # past argument=value
+    # ;;
+    # --optimize=*)
+    # echo ""
+    # echo ${i#*=}
+    # echo ""
+    # FIOPTIONS="${FIOPTIONS} --optimize ${i#*=}"
+    # shift # past argument=value
+    # ;;
+    # --baseoptimize=*)
+    # FIOPTIONS="${FIOPTIONS} --baseoptimize ${i#*=}"
+    # shift # past argument=value
+    # ;;
     *)
-    # unknown option
+    FIOPTIONS="${FIOPTIONS} ${i/=/ }"
+    shift # past argument=value
     ;;
 esac
 done
@@ -105,7 +109,7 @@ else
     FEATURE_TYPE="double"
 fi
 
-python3 fastinference/main.py --model $OUTPATH/$MODELNAME.$ENDING --feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" $FIOPTIONS 
+python3 fastinference/main.py --model $OUTPATH/$MODELNAME.$ENDING --implementation.feature_type $FEATURE_TYPE --out_path $OUTPATH --out_name "model" $FIOPTIONS 
 
 python3 ./tests/data/convert_data.py --file $OUTPATH/testing.csv --out $OUTPATH/testing.h --dtype $FEATURE_TYPE --ltype "unsigned int"
 cp ./tests/main.cpp $OUTPATH

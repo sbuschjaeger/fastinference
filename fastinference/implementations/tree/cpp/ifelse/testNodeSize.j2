@@ -1,0 +1,54 @@
+{% macro test_leaf_size(node, tree_weight) %}
+__attribute__((section("test_leaf_{{node.id}}"))) void test{{node.id}}( {{feature_type }} const * const x, {{ label_type }} * pred){
+    {% for pred in node.prediction %}
+        pred[{{loop.index-1}}] += {{pred*tree_weight}};
+    {% endfor %}
+    return;
+}
+{% endmacro %}
+
+{% macro test_split_size(node, tree_weight) %}
+__attribute__((section("test_split_{{node.id}}"))) unsigned int test{{node.id}}({{feature_type}} const * const x, {{label_type}} * pred){
+    if( x[ {{0 if node.feature != 0 else 1}} ] <= 20 ){
+        if (x[{{node.feature}}] <= {{node.split}}) {
+            return 10;
+        }
+        else { 
+            return 40; 
+        }
+    }
+    else { 
+        return 30; 
+    }
+}
+{% endmacro %}
+
+__attribute__((section("leafEmpty"))) void emp({{feature_type}} const * const x, {{label_type}} * pred){} 
+
+__attribute__((section("splitReturnEmpty"))) unsigned int sp_return_emp({{feature_type}} const * const x, {{label_type}} * pred){
+    return 40;
+}
+
+__attribute__((section("splitEmpty"))) unsigned int sp_emp({{feature_type}} const * const x, {{label_type}} * pred){
+    if( x[0] <= 20 ){
+        return 10;
+    } else{ 
+        return 30; 
+    }
+}
+    
+__attribute__((section("splitEmpty1"))) unsigned int sp_emp1({{feature_type}} const * const x, {{label_type}} * pred){
+    if( x[1] <= 20 ){
+        return 10;
+    } else { 
+        return 30; 
+    }
+} 
+
+{% for node in tree.nodes %}
+    {% if node.prediction is none %}
+        {{test_split_size(node,weight)|indent}}
+    {% else %}
+        {{test_leaf_size(node,weight)|indent}}
+    {% endif %}
+{% endfor %}

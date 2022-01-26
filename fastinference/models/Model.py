@@ -36,17 +36,19 @@ class Model():
     Its recommended that you provide `from_dict` and `to_dict` functions to easily debug your code. 
     However, if this does not make sense and/or your model was not trained via sklearn then feel free to throw an 
     appropriate error or return dummy values. In this case make sure that you set the following fields:
-        - num_classes: The number of classes (=outputs of the model)
+        - classes: The class mappings. Each enty maps the given entry to the corresponding index so that the i-th output of the model belongs to class classes[i]. For example with classes = [1,0,2] the second output of the model maps to class 0, the first output to class 1 and the third output to class 2. 
+        - n_features: The number of features this model was trained on.
         - category: The category of the classifier. Feel free to add a new category if required, 
                     but make sure to change from_json_file accordingly
         - accuracy: Optional reference accuracy
         - model: The loaded model
     """
-    def __init__(self, num_classes, category, accuracy = None, name = "Model"):
+    def __init__(self, classes, n_features, category, accuracy = None, name = "Model"):
         """Generate a new Model.
 
         Args:
-            num_classes (int): The number of classes (=outputs) predicted by the model 
+            classes (list of int): The class mappings. Each enty maps the given entry to the corresponding index so that the i-th output of the model belongs to class classes[i]. For example with classes = [1,0,2] the second output of the model maps to class 0, the first output to class 1 and the third output to class 2. 
+            n_features (int): The number of features this model was trained on.
             model_category (str): The category of the given model, e.g. `linear`, `tree`, `ensemble` or `neuralnet`. The category is used during code generation to load the appropriate templates.  
             model_accuracy (float, optional):  The accuracy of the given model (e.g. evaluated on some test data) which can be used to verify the correctness of the code generation. Defaults to None.
             model_name (str, optional): The name of the given model which is later used to name the functions during code generation.. Defaults to "Model".
@@ -54,7 +56,10 @@ class Model():
         # The number of classes and the model category must be set after reading from json / sklearn / onnx.
         # If this is not set, this is not a valid model! 
         # The category, e.g. `linear`, `tree`, `ensemble` or `neuralnet` is used during code generation to load the appropriate templates. 
-        self.num_classes = num_classes
+        self.n_classes = len(classes)
+        self.classes = classes
+        self.n_features = n_features
+
         self.category = category
         self.model = None
 
@@ -107,7 +112,9 @@ class Model():
         """        
         model_dict = {}
 
-        model_dict["num_classes"] = self.num_classes
+        model_dict["classes"] = self.classes
+        model_dict["n_classes"] = self.n_classes
+        model_dict["n_features"] = self.n_features
         model_dict["category"] = self.category
         model_dict["accuracy"] = self.accuracy
         model_dict["name"] = self.name

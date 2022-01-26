@@ -145,7 +145,9 @@ class NeuralNet(Model):
             print("")
             input_shape = layer.output_shape
         
-        super().__init__(num_classes = n_classes, category = "neuralnet", name = name, accuracy = accuracy)
+        # TODO There might be an actual class mapping in the onnx file?
+        classes = [i for i in range(n_classes)]
+        super().__init__(classes, n_features = input_shape, category = "neuralnet", name = name, accuracy = accuracy)
 
     def predict_proba(self,X):
         """Applies this NeuralNet to the given data and provides the predicted probabilities for each example in X. This function internally calls :code:`onnxruntime.InferenceSession` for inference.. 
@@ -164,7 +166,7 @@ class NeuralNet(Model):
         opts.inter_op_num_threads = 1
         opts.execution_mode = onnxruntime.ExecutionMode.ORT_SEQUENTIAL
         # TODO I guess it would be better to use the actual onnx object instead of loading the file
-        # fpr every prediction.
+        # for every prediction.
         session = onnxruntime.InferenceSession(self.path_to_onnx, sess_options=opts)
         input_name = session.get_inputs()[0].name 
         return session.run([], {input_name: X})

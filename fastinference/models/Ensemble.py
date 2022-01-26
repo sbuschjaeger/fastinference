@@ -11,15 +11,16 @@ class Ensemble(Model):
     """
     A Ensemble implementation. There is nothing fancy going on here. It stores all models of the ensemble in an array :code:`self.models` and the corresponding weights in :code:`self.weights`.
     """
-    def __init__(self, num_classes, accuracy = None, name = "model"):
+    def __init__(self, classes, n_features, accuracy = None, name = "model"):
         """Constructor of this ensemble.
 
         Args:
-            num_classes (int): The number of classes this tree has been trained on.
+            classes (int): The class mappings. Each enty maps the given entry to the corresponding index so that the i-th output of the model belongs to class classes[i]. For example with classes = [1,0,2] the second output of the model maps to class 0, the first output to class 1 and the third output to class 2.
+			n_features (list of int): The number of features this model was trained on.
             accuracy (float, optional): The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.
             name (str, optional): The name of this model. Defaults to "Model".
         """
-        super().__init__(num_classes, "ensemble", accuracy, name)
+        super().__init__(classes, n_features, "ensemble", accuracy, name)
 
         self.models = []
         self.weights = []
@@ -37,7 +38,7 @@ class Ensemble(Model):
             Ensemble: The newly generated ensemble.
         """
 
-        model = Ensemble(len(set(sk_model.classes_)), accuracy, name)
+        model = Ensemble(sk_model.classes_, sk_model.n_features_, accuracy, name)
          
         if isinstance(sk_model, (BaggingClassifier, RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor)):
             #obj.category = "ensemble"
@@ -76,7 +77,7 @@ class Ensemble(Model):
         Returns:
             Ensemble: The newly generated ensemble.
         """
-        model = Ensemble(data["num_classes"], data.get("accuracy", None), data.get("name", "Model"))
+        model = Ensemble(data["classes"], data["n_features"], data.get("accuracy", None), data.get("name", "Model"))
         #obj = super().from_dict(data)
 
         for entry in data["models"]:

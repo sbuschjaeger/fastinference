@@ -29,4 +29,8 @@ def optimize(model, **kwargs):
             cur_node.leftChild = right
             cur_node.rightChild = left
 
+        if cur_node.prediction is not None:
+            remaining_nodes.append(cur_node.leftChild)
+            remaining_nodes.append(cur_node.rightChild)
+
     return model

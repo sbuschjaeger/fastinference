@@ -10,15 +10,16 @@ class DiscriminantAnalysis(Model):
     """
     Placeholder class for all discriminant analysis models. Currently targetd towards scikit-learns QuadraticDiscriminantAnalysis.
     """
-    def __init__(self, num_classes, accuracy = None, name = "Model"):
+    def __init__(self, classes, n_features, accuracy = None, name = "Model"):
         """Constructor of this DiscriminantAnalysis.
 
         Args:
-            num_classes (int): The number of classes this tree has been trained on.
+            classes (list of int): The class mappings. Each enty maps the given entry to the corresponding index so that the i-th output of the model belongs to class classes[i]. For example with classes = [1,0,2] the second output of the model maps to class 0, the first output to class 1 and the third output to class 2.
+			n_features (int): The number of features this model was trained on.
             accuracy (float, optional): The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.
             name (str, optional): The name of this model. Defaults to "Model".
         """
-        super().__init__(num_classes, "discriminant", accuracy, name)
+        super().__init__(classes, n_features, "discriminant", accuracy, name)
         self.product = []
         self.means = []
         self.log_priors = []
@@ -38,7 +39,7 @@ class DiscriminantAnalysis(Model):
         Returns:
             DiscriminantAnalysis: The newly generated DiscriminantAnalysis object.
         """
-        obj = DiscriminantAnalysis(len(set(sk_model.classes_)), accuracy, name)
+        obj = DiscriminantAnalysis(sk_model.classes_, sk_model.n_features_, accuracy, name)
 
         obj.means = sk_model.means_
         obj.log_priors = np.log(sk_model.priors_)
@@ -59,7 +60,7 @@ class DiscriminantAnalysis(Model):
         Returns:
             DiscriminantAnalysis: The newly generated DiscriminantAnalysis classifier.
         """
-        obj = DiscriminantAnalysis(data["num_classes"],data.get("accuracy", None), data.get("name", "Model"))
+        obj = DiscriminantAnalysis(data["classes"], data["n_features"], data.get("accuracy", None), data.get("name", "Model"))
 
         obj.means = data["means"] 
         obj.log_priors = data["log_priors"] 

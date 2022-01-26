@@ -50,33 +50,29 @@ class Node:
 
 		# The probability of this node accumulated from the probabilities of previous
 		# edges on the same path.
-		# Note: This field is only used after calling getProbAllPaths onc
+		# Note: This field is only used after calling getProbAllPaths once
 		self.pathProb = None
 
 class Tree(Model):
 	"""
 	A Decision Tree implementation. There is nothing fancy going on here. It stores all nodes in an array :code:`self.nodes` and has a pointer :code:`self.head` which points to the root node of the tree. Per construction it is safe to assume that :code:`self.head = self.nodes[0]`. 
 	"""
-	def __init__(self, num_classes, accuracy = None, name = "Model"):
+	def __init__(self, classes, n_features, accuracy = None, name = "Model"):
 		"""Constructor of a tree.
 
 		Args:
-			num_classes (int): The number of classes this tree has been trained on.
+			classes (int): The class mappings. Each enty maps the given entry to the corresponding index so that the i-th output of the model belongs to class classes[i]. For example with classes = [1,0,2] the second output of the model maps to class 0, the first output to class 1 and the third output to class 2.
+			n_features (list of int): The number of features this model was trained on.
 			model_accuracy (float, optional): The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.
 			name (str, optional): The name of this model. Defaults to "Model".
 		"""
-		super().__init__(num_classes, "tree", accuracy, name)
+		super().__init__(classes, n_features, "tree", accuracy, name)
 
 		# Array of all nodes
 		self.nodes = []
 
 		# Pointer to the root node of this tree
 		self.head = None
-
-		# TODO QUICK FIX
-		self.n_classes_ = num_classes
-		# Create a table to store the size of node
-		self.nodeSizeTable = []
 
 	def predict_proba(self,X):
 		"""Applies this tree to the given data and provides the predicted probabilities for each example in X.
@@ -116,17 +112,13 @@ class Tree(Model):
 		Returns:
 			Tree: The newly generated tree.
 		"""
-		tree = Tree(len(set(sk_model.classes_)), name = name, accuracy=accuracy)
+		tree = Tree(sk_model.classes_, sk_model.n_features_, name = name, accuracy=accuracy)
 		
 		tree.nodes = []
 		tree.head = None
 		tree.category = "tree"
 
 		sk_tree = sk_model.tree_
-		
-		# TODO THIS IS A QUICK FIX!!
-		tree.classes_ = sk_model.classes_
-		#tree.n_classes_ = sk_tree.n_classes_
 
 		node_ids = [0]
 		tmp_nodes = [Node()]
@@ -193,7 +185,7 @@ class Tree(Model):
 		Returns:
 			Tree: The newly generated tree.
 		"""
-		tree = Tree(data["num_classes"], data.get("accuracy", None), data.get("name", "Model"))
+		tree = Tree(data["classes"], data["n_features"], data.get("accuracy", None), data.get("name", "Model"))
 		tree.nodes = []
 
 		nodes = [Node()]

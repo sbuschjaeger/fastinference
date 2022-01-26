@@ -12,15 +12,16 @@ class Linear(Model):
     """
     A placeholder for all linear models. There is nothing fancy going on here. This class stores the coefficients of the linear function in :code:`self.coeff` and the bias/intercept in :code:`self.intercept`.
     """    
-    def __init__(self, num_classes, accuracy = None, name = "Model"):
+    def __init__(self, classes, n_features, accuracy = None, name = "Model"):
         """Constructor of a linear model.
 
         Args:
-            num_classes (int): The number of classes this tree has been trained on.
+            classes (int): The class mappings. Each enty maps the given entry to the corresponding index so that the i-th output of the model belongs to class classes[i]. For example with classes = [1,0,2] the second output of the model maps to class 0, the first output to class 1 and the third output to class 2.
+			n_features (list of int): The number of features this model was trained on.
             model_accuracy (float, optional): The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.
             name (str, optional): The name of this model. Defaults to "Model".
         """
-        super().__init__(num_classes, "linear", accuracy, name)
+        super().__init__(classes, n_features, "linear", accuracy, name)
         self.coef = []
         self.intercept = []
     
@@ -36,7 +37,7 @@ class Linear(Model):
         Returns:
             Linear: The newly generated linear model.
         """
-        model = Linear(len(set(sk_model.classes_)), accuracy, name)
+        model = Linear(sk_model.classes_, sk_model.n_features_, accuracy, name)
         model.intercept = sk_model.intercept_
         model.coef = sk_model.coef_.T
 
@@ -52,7 +53,7 @@ class Linear(Model):
         Returns:
             Tree: The newly generated linear model.
         """
-        model = Linear(data["num_classes"], data.get("accuracy", None), data.get("name", "Model"))
+        model = Linear(data["classes"], data["n_features"], data.get("accuracy", None), data.get("name", "Model"))
         model.intercept = np.array(data["intercept"])
         model.coef = np.array(data["coeff"])
 
