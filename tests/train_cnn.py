@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import pandas as pd
+import numpy as np
 import os
 import argparse
 from sklearn.metrics import accuracy_score
@@ -157,7 +158,7 @@ class SimpleCNN(pl.LightningModule):
 
     def predict(self, X):
         return self.forward(torch.from_numpy(X).float()).argmax(axis=1)   
-
+        
     def on_epoch_start(self):
         print('\n')
 
@@ -268,7 +269,7 @@ def eval_model(model, x_train, y_train, x_test, y_test, out_path, name):
     print("Exporting {} to {}".format(name,out_path))
     # Export the model. Since torch traces the model we should put it in eval mode to 
     # prevent any updates to it (yes I know it sounds weird, but this way I sometimes ended
-    # up with float weights after sanatizing -.-) 
+    # up with float weights after sanitizing -.-) 
     model = sanatize_onnx(model)
 
     # print(model)

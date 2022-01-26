@@ -100,6 +100,8 @@ class Model():
 
     def implement(self, out_path, out_name, implementation_type, **kwargs):
         os.makedirs(out_path, exist_ok = True)
+        print("fastinference.implementations.{}.{}.implement".format(self.category,implementation_type))
+        
         to_implementation = dynamic_import("fastinference.implementations.{}.{}.implement".format(self.category,implementation_type), "to_implementation")
         self_copy = copy.deepcopy(self)
         to_implementation(self_copy, out_path, out_name, **kwargs)

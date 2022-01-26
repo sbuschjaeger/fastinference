@@ -14,7 +14,7 @@ void predict_{{name}}({{ feature_type }} const * const x, {{ label_type }} * pre
     auto layer_{{ in_layer_id }}_output = x;
 	{{ code_predict|indent(4) }}
 
-    for (int i = 0; i < {{ model.n_classes }}; i++) {
+    for (int i = 0; i < {{ n_classes }}; i++) {
         pred[i] += {% if weight != 1.0 %}{{ weight }} * {% endif %}layer_{{ out_layer_id }}_output[i];
     }
 }

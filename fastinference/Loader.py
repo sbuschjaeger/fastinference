@@ -32,6 +32,7 @@ def model_to_json(model, out_path, file_name = "model"):
         data = {
             "n_classes":model.n_classes,
             "classes":model.classes,
+            "n_features":model.n_features,
             "category":model.category,
             "accuracy":model.accuracy,
             "name":model.name,

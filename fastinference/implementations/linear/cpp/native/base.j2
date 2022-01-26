@@ -8,7 +8,7 @@ constexpr {{internal_type}} intercept[{{model.intercept|length}}] = {{model.inte
 }
 
 void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
-    for (unsigned int j = 0; j < {{model.model.n_classes}}; ++j) {
+    for (unsigned int j = 0; j < {{model.n_classes}}; ++j) {
         {{internal_type}} sum = {{model.name}}::intercept[j]; 
         for (unsigned int i = 0; i < {{model.coef[0]|length}}; ++i) {
             sum += {{model.name}}::coef[j][i] * x[i];
