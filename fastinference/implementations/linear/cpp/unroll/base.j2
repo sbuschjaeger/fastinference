@@ -3,7 +3,7 @@ namespace {{namespace}} {
 {{ code_static }}
 
 void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
-    {% if model.num_classes == 0 %}
+    {% if model.n_classes == 0 %}
     *pred += {{model.intercept}} {% for c in model.coef %} + x[{{loop.index-1}}]*{{c}} {% endfor %};
     {% else %}
         {% for c1 in model.coef %}

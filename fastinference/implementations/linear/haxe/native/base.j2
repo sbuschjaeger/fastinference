@@ -5,7 +5,7 @@ class {{model.name}} {
     var intercept:Array<{{internal_type}}> = {{model.intercept}};
 
     function predict(x:Array<{{feature_type}}>, pred:Array<{{label_type}}>) {
-        for (j in 0...{{model.num_classes}}) {
+        for (j in 0...{{model.n_classes}}) {
             var sum:{{internal_type}} = intercept[j]; 
             for (i in 0...{{model.coef[0]|length}}) {
                 sum = sum + coef[j][i] * x[i];
