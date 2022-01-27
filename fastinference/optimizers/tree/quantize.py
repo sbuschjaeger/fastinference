@@ -16,7 +16,7 @@ def get_leaf_probs(node):
     while len(to_expand) > 0:
         n = to_expand.pop(0)
         if n.prediction is not None:
-            leaf_probs.append( n.prediction ) # * n.numSamples ?
+            leaf_probs.append( np.array(n.prediction) ) # * n.numSamples ?
         else:
             to_expand.append(n.leftChild)
             to_expand.append(n.rightChild)
@@ -47,8 +47,8 @@ def optimize(model, quantize_splits = None, quantize_leafs = None, quantize_fact
     if quantize_leafs == "fixed":
         for n in model.nodes:
             if n.prediction is not None:
-                n.prediction = np.ceil(n.prediction * quantize_factor).astype(int)
-        
+                n.prediction = np.ceil(np.array(n.prediction) * quantize_factor).astype(int)
+
     # Prune the DT by removing sub-trees that are not accessible any more.
     fmin = [None for _ in range(model.n_features)]
     fmax = [None for _ in range(model.n_features)]

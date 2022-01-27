@@ -87,8 +87,6 @@ def main():
             # cur_args[ key.split(":")[1] ] = 
             del unknown[key]
 
-    print(args.implementation)
-    print(implementation_args)
     if isinstance(loaded_model, Ensemble):
         base_optimizer_args = []
         if args.baseoptimize is not None and len(args.baseoptimize) > 0:
