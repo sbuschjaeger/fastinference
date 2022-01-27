@@ -7,6 +7,7 @@ Available optimizations
 -----------------------
 
 .. autofunction:: fastinference.optimizers.tree.swap.optimize
+.. autofunction:: fastinference.optimizers.tree.quantize.optimize
 
 The Tree object
 ---------------
