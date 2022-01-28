@@ -77,7 +77,6 @@ class Ensemble(Model):
         Returns:
             Ensemble: The newly generated ensemble.
         """
-        print(data)
         model = Ensemble(data["classes"], data["n_features"], data.get("accuracy", None), data.get("name", "Model"))
         #obj = super().from_dict(data)
 
@@ -144,7 +143,6 @@ class Ensemble(Model):
             dict: The dictionary representation of this ensemble.
         """
         model_dict = super().to_dict()
-        print(model_dict)
 
         models = []
         for m,w in zip(self.models, self.weights):

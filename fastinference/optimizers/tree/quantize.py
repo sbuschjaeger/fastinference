@@ -20,7 +20,7 @@ def get_leaf_probs(node):
         else:
             to_expand.append(n.leftChild)
             to_expand.append(n.rightChild)
-    return np.array(leaf_probs).mean(axis=0)
+    return np.array(leaf_probs).mean(axis=0).tolist()
 
 def optimize(model, quantize_splits = None, quantize_leafs = None, quantize_factor = 1000, **kwargs):
     """Quantizes the splits and predictions in the leaf nodes of the given tree and prunes away unreachable parts of the tree after quantization. 
@@ -47,36 +47,38 @@ def optimize(model, quantize_splits = None, quantize_leafs = None, quantize_fact
     if quantize_leafs == "fixed":
         for n in model.nodes:
             if n.prediction is not None:
-                n.prediction = np.ceil(np.array(n.prediction) * quantize_factor).astype(int)
+                n.prediction = np.ceil(np.array(n.prediction) * quantize_factor).astype(int).tolist()
 
     # Prune the DT by removing sub-trees that are not accessible any more.
-    fmin = [None for _ in range(model.n_features)]
-    fmax = [None for _ in range(model.n_features)]
-    to_expand = [ (model.head, fmin, fmax) ]
+    fmin = [float('-inf') for _ in range(model.n_features)]
+    fmax = [float('inf') for _ in range(model.n_features)]
+    to_expand = [ (model.head, None, True, fmin, fmax) ]
     while len(to_expand) > 0:
-        n, fmin, fmax = to_expand.pop(0)
+        n, parent, is_left, fmin, fmax = to_expand.pop(0)
         if n.prediction is None:
-            lfmin, lfmax = fmin.copy(), fmax.copy()
-            if lfmax[n.feature] == n.split:
+            if not (fmin[n.feature] < n.split < fmax[n.feature]):
+            #if fmax[n.fea]
+            #if ((fmax[n.feature] is not None) and (fmax[n.feature] <= n.split)) or ((fmin[n.feature] is not None) and (fmin[n.feature] >= n.split)):
                 new_node = Node()
-                new_node.id = n.leftChild.id
-                new_node.numSamples = n.leftChild.numSamples
-                new_node.prediction = get_leaf_probs(n.leftChild)
-                n.leftChild = new_node
+                new_node.id = n.id
+                new_node.numSamples = n.numSamples
+                new_node.pathProb = n.pathProb
+                new_node.prediction = get_leaf_probs(n)
+                if parent is not None: 
+                    if is_left: 
+                        parent.leftChild = new_node
+                    else:
+                        parent.rightChild = new_node
+                else:
+                    print("WARNING: THIS SHOULD NOT HAPPEN IN optimizers.tree.quantize")
             else:
+                lfmin, lfmax = fmin.copy(), fmax.copy()
                 lfmax[n.feature] = n.split
-                to_expand.append( (n.leftChild, lfmin, lfmax) )
-
-            rfmin, rfmax = fmin.copy(), fmax.copy()
-            if rfmin[n.feature] is not None and rfmin[n.feature] > n.split:
-                new_node = Node()
-                new_node.id = n.rightChild.id
-                new_node.numSamples = n.rightChild.numSamples
-                new_node.prediction = get_leaf_probs(n.rightChild)
-                n.rightChild = new_node
-            else:
+                to_expand.append( (n.leftChild, n, True, lfmin, lfmax) )
+            
+                rfmin, rfmax = fmin.copy(), fmax.copy()
                 rfmin[n.feature] = n.split
-                to_expand.append( (n.rightChild, rfmin, rfmax) )
+                to_expand.append( (n.rightChild, n, False, rfmin, rfmax) )
 
     # Make sure that node ids are correct after pruning and that model.nodes only
     # contains those nodes that remained in the tree

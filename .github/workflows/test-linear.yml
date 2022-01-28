@@ -1,0 +1,67 @@
+name: Running linear and quadratic tests
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test-linear:
+    runs-on: ubuntu-latest
+    container: pytorchlightning/pytorch_lightning
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare
+        run: |
+            pip install .
+      
+      - name: Test QDA inference 
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            cd tests
+            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
+        env:
+          data: eeg
+          outpath: /tmp/fastinference/DiscriminantAnalysis
+          modelname: DiscriminantAnalysis
+          nestimators: 1
+          type: quadratic
+      
+      - name: Test bagged QDA inference 
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            cd tests
+            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
+        env:
+          data: eeg
+          outpath: /tmp/fastinference/BaggingDiscriminantAnalysis
+          modelname: BaggingDiscriminantAnalysis
+          nestimators: 5
+          type: quadratic
+
+      - name: Test ridge inference 
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            cd tests
+            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
+        env:
+          data: eeg
+          outpath: /tmp/fastinference/RidgeRegressionClassifier
+          modelname: RidgeRegressionClassifier
+          nestimators: 1
+          type: linear 
+
+      - name: Test bagged ridge inference 
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            cd tests
+            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
+        env:
+          data: eeg
+          outpath: /tmp/fastinference/BaggingRidgeRegressionClassifier
+          modelname: BaggingRidgeRegressionClassifier
+          nestimators: 5
+          type: linear 

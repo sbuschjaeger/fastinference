@@ -52,6 +52,8 @@ def model_to_json(model, out_path, file_name = "model"):
     with open(os.path.join(out_path, file_name), "w") as outfile:  
         json.dump(data, outfile, cls=NumpyEncoder)
 
+    return os.path.join(out_path, file_name)
+
 def model_from_dict(data):
     category = data.pop("category")
     if category == "linear":

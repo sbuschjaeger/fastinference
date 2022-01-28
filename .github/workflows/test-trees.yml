@@ -1,0 +1,42 @@
+name: Running tree tests
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test-trees:
+    runs-on: ubuntu-latest
+    container: pytorchlightning/pytorch_lightning
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare
+        run: |
+            pip install .
+      
+      - name: Test DT inference 
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            cd tests
+            python3 test_trees.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --maxdepth $maxdepth
+        env:
+          data: eeg
+          outpath: /tmp/fastinference/DecisionTreeClassifier
+          modelname: DecisionTreeClassifier
+          nestimators: 1
+          maxdepth: 10
+
+      - name: Test RF inference 
+        run: | 
+            cd $GITHUB_WORKSPACE
+            mkdir -p $outpath
+            cd tests
+            python3 test_trees.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --maxdepth $maxdepth
+        env:
+          data: eeg
+          outpath: /tmp/fastinference/RandomForestClassifier
+          modelname: RandomForestClassifier
+          nestimators: 32
+          maxdepth: 10
+

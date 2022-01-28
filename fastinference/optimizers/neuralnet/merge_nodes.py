@@ -22,9 +22,11 @@ def optimize(model, **kwargs):
     new_layers = []
     last_layer = None
     for layer_id, layer in enumerate(model.layers):
+        print("CHECKING {}".format(layer.name))
         if last_layer is not None:
             if isinstance(last_layer, BatchNorm) and isinstance(layer, Step):
                 layer.threshold = layer.threshold -last_layer.bias / last_layer.scale
+                print("NEW STEP THRESHOLD IS {}".format(layer.threshold))
             else:
                 new_layers.append(last_layer)
         last_layer = layer

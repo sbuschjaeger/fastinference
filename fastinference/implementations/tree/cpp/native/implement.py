@@ -38,11 +38,14 @@ def reorder(model, set_size = 8, force_cacheline = False, **kwargs):
             if n.prediction is not None:
                 # A leaf node is found and hence this path cannot be explored further.
                 if pid >= 0:
-                    # Make sure the id of our parent node points to the correct index
+
+                    # Make sure the id of our parent node points to the correct index and set is_leaf correctly
                     if is_left:
                         inner_nodes[pid].leftChild.id = len(leaf_nodes)
+                        inner_nodes[pid].left_is_leaf = "true"
                     else:
                         inner_nodes[pid].rightChild.id = len(leaf_nodes)
+                        inner_nodes[pid].right_is_leaf = "true"
 
                 if force_cacheline:
                     # Fill in padding / dummy nodes if cset is not full yet
@@ -59,17 +62,10 @@ def reorder(model, set_size = 8, force_cacheline = False, **kwargs):
                 cid = len(inner_nodes)
                 inner_nodes.append(n)
 
-                # Make sure the we properly maintain the left_is_leaf / right_is_leaf fields 
-                if n.leftChild.prediction is not None:
-                    n.left_is_leaf = "true"
-                else:
-                    n.left_is_leaf = "false"
-
-                if n.rightChild.prediction is not None:
-                    n.right_is_leaf = "true"
-                else:
-                    n.right_is_leaf = "false"
-
+                # Just set the is_leaf fields to false for all nodes. If we reach an actual leaf node then we will
+                # set it to "true" in the above code path
+                n.left_is_leaf = "false"
+                n.right_is_leaf = "false"
                 
                 if pid >= 0:
                     # Make sure the id of our parent node points to the correct index
@@ -80,13 +76,19 @@ def reorder(model, set_size = 8, force_cacheline = False, **kwargs):
 
                 # Directly explore the left / right sub-tree without using the heap. 
                 # Put the other sub-tree on the heap for later. 
-                # Since heappush maintains the heap-invaraint there is not need to call heapify
-                if n.leftChild.pathProb > n.rightChild.pathProb:
-                    heapq.heappush(to_expand, (-n.rightChild.pathProb, cid, False, n.rightChild))
-                    pid, is_left, n = cid, True, n.leftChild
+                # Since heappush maintains the heap-invariant there is not need to call heapify
+                if cset_size < set_size:
+                    if n.leftChild.pathProb > n.rightChild.pathProb:
+                        heapq.heappush(to_expand, (-n.rightChild.pathProb, cid, False, n.rightChild))
+                        pid, is_left, n = cid, True, n.leftChild
+                    else:
+                        heapq.heappush(to_expand, (-n.leftChild.pathProb, cid, True, n.leftChild))
+                        pid, is_left, n = cid, False, n.rightChild
                 else:
+                    # If the set size is already full then continue normally by including both children into the heap
+                    heapq.heappush(to_expand, (-n.rightChild.pathProb, cid, False, n.rightChild))
                     heapq.heappush(to_expand, (-n.leftChild.pathProb, cid, True, n.leftChild))
-                    pid, is_left, n = cid, False, n.rightChild
+
     return inner_nodes, leaf_nodes
 
 def get_nodes(model):
@@ -106,34 +108,29 @@ def get_nodes(model):
     # Make sure that the nodes are correctly numbered given their current order
     # To do so, traverse the tree in BFS order and maintain a tuple (parent id, true/false if this is a left child, node)
     # We also split the inner nodes and the leaf nodes into two arrays inner_nodes and leaf_nodes
-    # Last we make sure to set the left_is_leaf / right_is_leaf fields of the node which is then accesed during code generation
+    # Last we make sure to set the left_is_leaf / right_is_leaf fields of the node which is then accessed during code generation
     while( len(to_expand) > 0 ):
         pid, is_left, n = to_expand.pop(0)
 
         if n.prediction is not None:
             if pid >= 0:
-                # Make sure the id of our parent node points to the correct index
+                # Make sure the id of our parent node points to the correct index and set is_leaf correctly
                 if is_left:
                     inner_nodes[pid].leftChild.id = len(leaf_nodes)
+                    inner_nodes[pid].left_is_leaf = "true"
                 else:
                     inner_nodes[pid].rightChild.id = len(leaf_nodes)
+                    inner_nodes[pid].right_is_leaf = "true"
 
             leaf_nodes.append(n)
         else:
             cid = len(inner_nodes)
             inner_nodes.append(n)
 
-            # Make sure the we properly maintain the left_is_leaf / right_is_leaf fields 
-            if n.leftChild.prediction is not None:
-                n.left_is_leaf = "true"
-            else:
-                n.left_is_leaf = "false"
-
-            if n.rightChild.prediction is not None:
-                n.right_is_leaf = "true"
-            else:
-                n.right_is_leaf = "false"
-
+            # Just set the is_leaf fields to false for all nodes. If we reach an actual leaf node then we will
+            # set it to "true" in the above code path
+            n.left_is_leaf = "false"
+            n.right_is_leaf = "false"
             
             if pid >= 0:
                 # Make sure the id of our parent node points to the correct index
