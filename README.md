@@ -1,7 +1,10 @@
 <img src="docs/logo.png" width="600" height="150"> <h1>Fastinference</h1>
 
 [![Building docs](https://github.com/sbuschjaeger/fastinference/actions/workflows/docs.yml/badge.svg)](https://github.com/sbuschjaeger/fastinference/actions/workflows/docs.yml)
-[![Running tests](https://github.com/sbuschjaeger/fastinference/actions/workflows/tests.yml/badge.svg)](https://github.com/sbuschjaeger/fastinference/actions/workflows/tests.yml)
+[![Linear and quadratic tests](https://github.com/sbuschjaeger/fastinference/actions/workflows/test-linear.yml/badge.svg)](https://github.com/sbuschjaeger/fastinference/actions/workflows/test-linear.yml)
+[![Neural network tests](https://github.com/sbuschjaeger/fastinference/actions/workflows/test-nn.yml/badge.svg)](https://github.com/sbuschjaeger/fastinference/actions/workflows/test-nn.yml)
+[![Tree tests](https://github.com/sbuschjaeger/fastinference/actions/workflows/test-trees.yml/badge.svg)](https://github.com/sbuschjaeger/fastinference/actions/workflows/test-trees.yml)
+
 
 Fastinference is a machine learning model optimizer and model compiler that generates the optimal implementation for your model and hardware architecture. It encapsulates many classical ML algorithms such as Decision Trees or Random Forests as well as modern Deep Learning architectures. It is easily extensible and also offers more obscure models such as [Binarized Neural Networks](https://sbuschjaeger.github.io/fastinference/html/neuralnet.html). In Fastinference 
 
