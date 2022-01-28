@@ -84,29 +84,6 @@
 </section>
 <section id="discriminant-analysis-implementations">
 <h2>Discriminant analysis implementations<a class="headerlink" href="#discriminant-analysis-implementations" title="Permalink to this headline"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="fastinference.implementations.discriminant.cpp.implement.to_implementation">
-<span class="sig-prename descclassname"><span class="pre">fastinference.implementations.discriminant.cpp.implement.</span></span><span class="sig-name descname"><span class="pre">to_implementation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'FAST_INFERENCE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.implementations.discriminant.cpp.implement.to_implementation" title="Permalink to this definition"></a></dt>
-<dd><p>Generates a (unrolled) C++ implementation of the given DiscriminantAnalysis model. Unrolled means that parameters of the model are not stored in arrays but are directly translated into the source code. You can use this implementation by simply passing <code class="code docutils literal notranslate"><span class="pre">&quot;cpp&quot;</span></code> to the implement, e.g.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">loaded_model</span> <span class="o">=</span> <span class="n">fastinference</span><span class="o">.</span><span class="n">Loader</span><span class="o">.</span><span class="n">model_from_file</span><span class="p">(</span><span class="s2">&quot;/my/nice/model.json&quot;</span><span class="p">)</span>
-<span class="n">loaded_model</span><span class="o">.</span><span class="n">implement</span><span class="p">(</span><span class="s2">&quot;/some/nice/place/&quot;</span><span class="p">,</span> <span class="s2">&quot;mymodel&quot;</span><span class="p">,</span> <span class="s2">&quot;cpp&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<a class="reference internal" href="discriminant.html#fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis" title="fastinference.models.DiscriminantAnalysis.DiscriminantAnalysis"><em>DiscriminantAnalysis</em></a>) – The DiscriminantAnalysis model to be implemented</p></li>
-<li><p><strong>out_path</strong> (<em>str</em>) – The folder in which the <code class="code docutils literal notranslate"><span class="pre">*.cpp</span></code> and <code class="code docutils literal notranslate"><span class="pre">*.h</span></code> files are stored.</p></li>
-<li><p><strong>out_name</strong> (<em>str</em>) – The filenames.</p></li>
-<li><p><strong>weight</strong> (<em>float</em><em>, </em><em>optional</em>) – The weight of this model inside an ensemble. The weight is ignored if it is 1.0, otherwise the prediction is scaled by the respective weight.. Defaults to 1.0.</p></li>
-<li><p><strong>namespace</strong> (<em>str</em><em>, </em><em>optional</em>) – The namespace under which this model will be generated. Defaults to “FAST_INFERENCE”.</p></li>
-<li><p><strong>feature_type</strong> (<em>str</em><em>, </em><em>optional</em>) – The data types of the input features. Defaults to “double”.</p></li>
-<li><p><strong>label_type</strong> (<em>str</em><em>, </em><em>optional</em>) – The data types of the label. Defaults to “double”.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="tree-implementations">
 <h2>Tree implementations<a class="headerlink" href="#tree-implementations" title="Permalink to this headline"></a></h2>
