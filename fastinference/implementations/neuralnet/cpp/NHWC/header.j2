@@ -1,10 +1,14 @@
-{%- if model.accuracy is not none %}
-#define REF_ACCURACY {{model.accuracy}}
-{% endif %}
-
 #pragma once 
-{{ NEW_LINE_DUMMY }}
 
 namespace {{namespace}} {
+    
+    {%- if model.accuracy is not none %}
+    
+    #define REF_ACCURACY {{model.accuracy}}
+    {% endif %}
+
+    #define N_CLASSES {{model.n_classes}}
+    #define N_FEATURES {{model.n_features}}
+
     void predict_{{ model.name }}({{ feature_type }} const * const x, {{ label_type }} * pred);
 }

@@ -84,8 +84,9 @@ class Model():
         #args = [{} if a is None else a for a in args]
 
         for opt, arg in zip(optimizers, args):
-            run_optimization = dynamic_import("fastinference.optimizers.{}.{}".format(self.category,opt), "optimize")
-            self = run_optimization(self, **arg)
+            if opt is not None:
+                run_optimization = dynamic_import("fastinference.optimizers.{}.{}".format(self.category,opt), "optimize")
+                self = run_optimization(self, **arg)
 
     def predict(self, X):
         """[summary]

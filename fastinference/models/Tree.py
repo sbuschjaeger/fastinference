@@ -194,7 +194,7 @@ class Tree(Model):
 		while(len(nodes) > 0):
 			node = nodes.pop(0)
 			entry = dicts.pop(0)
-			node.id = entry["id"]
+			node.id = len(tree.nodes) #entry["id"]
 			node.numSamples = int(entry["numSamples"])
 
 			if "prediction" in entry and entry["prediction"] is not None:
@@ -207,8 +207,8 @@ class Tree(Model):
 				node.isCategorical = (entry["isCategorical"] == "True")
 				node.feature = int(entry["feature"])
 				node.split = entry["split"]
-				node.rightChild = entry["rightChild"]["id"]
-				node.leftChild = entry["leftChild"]["id"]
+				#node.rightChild = entry["rightChild"]["id"]
+				#node.leftChild = entry["leftChild"]["id"]
 				node.pathProb = entry["pathProb"]
 
 				tree.nodes.append(node)
@@ -229,7 +229,7 @@ class Tree(Model):
 		if node is None:
 			node = self.head
 		
-		model_dict["id"] = node.id
+		#model_dict["id"] = node.id
 		model_dict["probLeft"] = node.probLeft
 		model_dict["probRight"] = node.probRight
 		model_dict["prediction"] = node.prediction

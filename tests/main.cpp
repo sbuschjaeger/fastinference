@@ -60,9 +60,9 @@ auto read_csv(std::string &path) {
 	return std::make_tuple(X,Y);
 }
 
-auto benchmark(std::vector<std::vector<FEATURE_TYPE>> &X, std::vector<unsigned int> &Y, unsigned int n_classes, unsigned int repeat) {
-    //double output[n_classes] = {0};
-	double * output = new double[n_classes];
+auto benchmark(std::vector<std::vector<FEATURE_TYPE>> &X, std::vector<unsigned int> &Y, unsigned int repeat) {
+    //double output[N_CLASSES] = {0};
+	double * output = new double[N_CLASSES];
     unsigned int n_features = X[0].size();
 
 	unsigned int matches = 0;
@@ -70,7 +70,7 @@ auto benchmark(std::vector<std::vector<FEATURE_TYPE>> &X, std::vector<unsigned i
     for (unsigned int k = 0; k < repeat; ++k) {
     	matches = 0;
 	    for (unsigned int i = 0; i < X.size(); ++i) {
-	        std::fill(output, output+n_classes, 0);
+	        std::fill(output, output+N_CLASSES, 0);
 	        unsigned int label = Y[i];
 
 	        // Note: To make this code more universially applicable we define predict to be the correct function
@@ -85,7 +85,7 @@ auto benchmark(std::vector<std::vector<FEATURE_TYPE>> &X, std::vector<unsigned i
 
 	        double max = output[0];
 	        unsigned int argmax = 0;
-	        for (unsigned int j = 1; j < n_classes; j++) {
+	        for (unsigned int j = 1; j < N_CLASSES; j++) {
 	            if (output[j] > max) {
 	                max = output[j];
 	                argmax = j;
@@ -107,20 +107,20 @@ auto benchmark(std::vector<std::vector<FEATURE_TYPE>> &X, std::vector<unsigned i
 }
 
 int main (int argc, char *argv[]) {
-	if (argc <= 3) {
-		std::cout << "Please provide three arguments: path n_classes n_repetitions" << std::endl;
+	if (argc <= 2) {
+		std::cout << "Please provide two arguments: path n_repetitions" << std::endl;
 	}
 	std::string path = std::string(argv[1]);
-	unsigned int n_classes = std::stoi(argv[2]);
-	unsigned int repeat = std::stoi(argv[3]);
+	unsigned int repeat = std::stoi(argv[2]);
 
 	auto data = read_csv(path);
 
 	assert(std::get<0>(data).size() > 0);
 	assert(std::get<0>(data).size() == std::get<1>(data).size());
+	assert(std::get<0>(data)[0].size() == N_FEATURES);
 
     std::cout << "RUNNING BENCHMARK WITH " << repeat << " REPETITIONS" << std::endl;
-    auto results = benchmark(std::get<0>(data), std::get<1>(data), n_classes, repeat);
+    auto results = benchmark(std::get<0>(data), std::get<1>(data), repeat);
     
     std::cout << "Accuracy: " << results.first << " %" << std::endl;
     std::cout << "Latency: " << results.second << " [ms/elem]" << std::endl;

@@ -37,5 +37,5 @@ def optimize(model, x_prune = None, y_prune = None, file = "", pruning_method = 
     pruner.prune(x_prune, y_prune, model.models, n_classes = model.n_classes)
 
     model.models = pruner.estimators_
-    model.weights_ = pruner.weights_
+    model.weights = pruner.weights_
     return model

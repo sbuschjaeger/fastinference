@@ -25,7 +25,7 @@ jobs:
           outpath: /tmp/fastinference/DecisionTreeClassifier
           modelname: DecisionTreeClassifier
           nestimators: 1
-          maxdepth: 10
+          maxdepth: 5
 
       - name: Test RF inference 
         run: | 
@@ -37,6 +37,6 @@ jobs:
           data: eeg
           outpath: /tmp/fastinference/RandomForestClassifier
           modelname: RandomForestClassifier
-          nestimators: 32
-          maxdepth: 10
+          nestimators: 8
+          maxdepth: 5
 

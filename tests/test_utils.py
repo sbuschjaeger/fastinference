@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 from decimal import DecimalTuple
 from genericpath import exists
 import itertools
@@ -158,19 +159,45 @@ def get_dataset(dataset, tmpdir = None, split = 0.3):
     return XTrain, YTrain, XTest, YTest
 
 def make_hash(o):
+    """Generates a positive hash from the given object. Does also work for tuples / dicts and lists
+
+    Args:
+        o (The object to be hashed): A positive hash value
+    """
     def freeze(o):
-        if isinstance(o, tuple):
-            return frozenset( freeze(oi) for oi in o)
+        # if isinstance(o, tuple):
+        #     return frozenset( freeze(oi) for oi in o)
 
         if isinstance(o,dict):
             return frozenset({ k:freeze(v) for k,v in o.items()}.items())
-
-        if isinstance(o,list):
+        elif isinstance(o,(list,tuple,set)):
             return tuple([freeze(v) for v in o])
-
-        return o
+        else: 
+            return hash(str(o))   
+        # return o
     
     return str(hash(freeze(o)) + sys.maxsize + 1) 
+
+def cfg_to_str(d):
+    """A simple helper functions that formats a dictionary or lists of dictionaries into  readable string by removing large numpy arrays from them. 
+
+    Args:
+        d (dict or list of dict): The dictionary or list of dictionaries to be converted into a string
+
+    Returns:
+        str: The string
+    """
+    _d = copy.deepcopy(d)
+
+    if isinstance(_d, list):
+        return str([cfg_to_str(di) for di in _d])
+    else:
+        for k in list(_d.keys()):
+            v = _d[k]
+            if isinstance(v, np.ndarray) and (len(v.shape) > 2 or len(v) > 5):
+                del _d[k]
+                #_d[k] = "np.array"
+        return str(_d)
 
 def prepare_onnxmodel(onnx_path, out_path, name, benchmark_file, implementation_type, implementation_args = {}, base_optimizer = [], base_optimizer_args = [], ensemble_optimizer = [], ensemble_optimizer_args = []):
     # print("Loading testing data")
@@ -201,7 +228,24 @@ def prepare_onnxmodel(onnx_path, out_path, name, benchmark_file, implementation_
     
     subprocess.call(prepare_and_compile, shell=True)
 
-def run_experiment(out_path, name, benchmark_file, n_classes, n_repeat = 5):
+def run_experiment(out_path, name, benchmark_file, n_repeat = 5):
+    """Compiles and executes the cpp code in the given filename using the supplied benchmark file.
+
+    Note 1: This code requires cmake for the compilation.
+    Note 2: This call will likely only work on Linux / MAC as it utilizes cp to move some files around
+
+    TODO: Make it platform independent. 
+
+    Args:
+        out_path (str): Folder in which all the cpp files are located.
+        name (str): The name of the function that should be tested. In most cases this is the model name
+        benchmark_file (str): A *.csv file that contains the test data
+        n_repeat (int, optional): The number of repetitions the experiment is repeated to get a more accurate estimation of the latency. Defaults to 5.
+
+    Returns:
+        dict: A dictionary that contains the output of the binary. It has the following fields: "accuracy", "diff accuracy", "latency [ms]", "size [Bytes]"
+    """    
+    
     prepare_and_compile = """
     cd {outpath} &&
     cmake . -DMODELNAME={name} -DFEATURE_TYPE={feature_type} &&
@@ -209,12 +253,11 @@ def run_experiment(out_path, name, benchmark_file, n_classes, n_repeat = 5):
     
     print("Calling {}".format(prepare_and_compile))
     subprocess.call(prepare_and_compile, shell=True)
+
+    print("Running {} {} {}".format(os.path.join(out_path, "testCode"), benchmark_file, str(n_repeat)))
     output = subprocess.check_output([
         os.path.join(out_path, "testCode"),
         benchmark_file,
-        #"/{outpath}/testCode".replace("{outpath}", out_path),
-        #"/{outpath}/{test_file}".replace("{outpath}", out_path).replace("{test_file}", benchmark_file),
-        str(n_classes),
         str(n_repeat)
     ]).decode(sys.stdout.encoding).strip()
     
@@ -229,23 +272,39 @@ def run_experiment(out_path, name, benchmark_file, n_classes, n_repeat = 5):
         "size [Bytes]": os.path.getsize(os.path.join(out_path, "testCode"))
     }
 
-def prepare_fastinference(model_path, out_path, name, implementation_type, implementation_args = {}, base_optimizer = [], base_optimizer_args = [], ensemble_optimizer = [], ensemble_optimizer_args = []):
+def prepare_fastinference(model_path, out_path, implementation_type, implementation_args = {}, base_optimizer = [], base_optimizer_args = [], ensemble_optimizer = [], ensemble_optimizer_args = []):
+    """Prepares all files for the given model and optimizations / implementations for the cpp backend.
+
+    Note: This call will likely only work on Linux / MAC as it utilizes cp to move some files around
+
+    TODO: Make it platform independent. 
+
+    Args:
+        model_path ([type]): The model to be generated
+        out_path ([type]): The path in which all cpp files should be stored
+        implementation_type (str): The cpp implementation. 
+        implementation_args (dict, optional): A dictionaries of additional parameters used during implementation. Defaults to {}.
+        base_optimizer (list of string, optional): A list of optimizations that are applied before implementing the model. Defaults to [].
+        base_optimizer_args (list of dict, optional): A list of parameters for each optimizer. Defaults to [].
+        ensemble_optimizer (list of string, optional): A list of optimizations that are applied to the ensemble. Defaults to [].
+        ensemble_optimizer_args (list of dict, optional): A list of parameters for each ensemble optimizer. Defaults to [].
+    """    
     fi_model = fastinference.Loader.model_from_file(model_path)
 
     if not os.path.exists(out_path):
         os.makedirs(out_path)
 
     if isinstance(fi_model, (Ensemble)):
-        print("Exporting {} with {} and {} to {}".format(
-            {"implementation_type":implementation_type, **implementation_args},{n:a for n, a in zip(ensemble_optimizer, ensemble_optimizer_args)}, {n:a for n, a in zip(base_optimizer, base_optimizer_args)}, name,out_path)
-        )
+        print("Exporting {} using {}:{} with {}:{} and {}:{} to {}".format(
+            fi_model.name, implementation_type, cfg_to_str(implementation_args), ensemble_optimizer, cfg_to_str(ensemble_optimizer_args), base_optimizer, cfg_to_str(base_optimizer_args), out_path
+        ))
         if len(ensemble_optimizer) > 0 and ensemble_optimizer[0] is not None:
             fi_model.optimize(ensemble_optimizer, ensemble_optimizer_args, base_optimizer, base_optimizer_args)
         fi_model.implement(out_path, "model", "cpp", "cpp.{}".format(implementation_type), **implementation_args)
     else:
-        print("Exporting {} with {} to {}".format(
-            {"implementation_type":implementation_type, **implementation_args},{n:a for n, a in zip(base_optimizer, base_optimizer_args)}, name,out_path)
-        )
+        print("Exporting {} using {}:{} with {}:{} to {}".format(
+            fi_model.name, implementation_type, cfg_to_str(implementation_args), base_optimizer, cfg_to_str(base_optimizer_args), out_path
+        ))
         if len(base_optimizer) > 0 and base_optimizer[0] is not None:
             fi_model.optimize(base_optimizer, base_optimizer_args)
         fi_model.implement(out_path, "model", "cpp.{}".format(implementation_type), **implementation_args)
@@ -253,28 +312,26 @@ def prepare_fastinference(model_path, out_path, name, implementation_type, imple
     prepare_and_compile = """
     cp ./main.cpp {outpath} && 
     cp ./CMakeLists.txt {outpath}
-    """.replace("{outpath}", out_path).replace("{name}", name).replace("{feature_type}", "double")
+    """.replace("{outpath}", out_path).replace("{name}", fi_model.name).replace("{feature_type}", "double")
     
     print("Calling {}".format(prepare_and_compile))
     subprocess.call(prepare_and_compile, shell=True)
 
-def test_implementations(model, dataset, split, implementations, optimizers, out_path, model_name, n_repeat=5):
+def test_implementations(model, dataset, split, implementations, base_optimizers = [([None], [{}])], ensemble_optimizers = [([None], [{}])], out_path = ".", model_name="Model", n_repeat=5):
     print("Loading {}".format(dataset))
     XTrain, YTrain, XTest, YTest = get_dataset(dataset,out_path,split)
 
-    print("Fitting model.")
+    print("Fitting model")
     model.fit(XTrain, YTrain)
 
-    print("Storing model.")
+    print("Storing model")
     acc = accuracy_score(model.predict(XTest), YTest)*100.0
     
     if isinstance(model, (BaggingClassifier, DecisionTreeClassifier, RidgeClassifier, QuadraticDiscriminantAnalysis, RandomForestClassifier)):
         fimodel = fastinference.Loader.model_from_sklearn(model, name = model_name, accuracy = acc)
         path_to_model = fastinference.Loader.model_to_json(fimodel, os.path.join(out_path), file_name=model_name)
-        n_classes = fimodel.n_classes
     else:
         path_to_model = model.store(out_path, acc, model_name)
-        n_classes = model.n_classes
         
     print("Storing test data")
     dfTest = pd.concat([pd.DataFrame(XTest, columns=["f{}".format(i) for i in range(len(XTrain[0]))]), pd.DataFrame(YTest,columns=["label"])], axis=1)
@@ -283,18 +340,20 @@ def test_implementations(model, dataset, split, implementations, optimizers, out
 
     performance = []
 
-    for impl, opt in itertools.product(implementations, optimizers):
-        impl_path = os.path.join(out_path, model_name + "_" + make_hash(impl) + "_" + make_hash(opt))
+    for impl, bopt, eopt in itertools.product(implementations, base_optimizers, ensemble_optimizers):
+        impl_path = os.path.join(out_path, fimodel.name + "_" + make_hash(impl) + "_" + make_hash(bopt) + "_" + make_hash(eopt))
 
-        prepare_fastinference(path_to_model, impl_path, model_name, implementation_type = impl[0], implementation_args = impl[1], base_optimizer = opt[0], base_optimizer_args = opt[1])
+        prepare_fastinference(path_to_model, impl_path, implementation_type = impl[0], implementation_args = impl[1], base_optimizer = bopt[0], base_optimizer_args = bopt[1], ensemble_optimizer = eopt[0], ensemble_optimizer_args = eopt[1])
 
         performance.append(
             {
-                "implementation":impl[0],
-                "implementation_args":impl[1],
-                "optimizer":opt[0],
-                "optimizer_args":opt[1],
-                **run_experiment(impl_path, model_name, path_to_testfile,  n_classes, n_repeat)
+                "impl":impl[0],
+                #"implt_args":cfg_to_str(impl[1]),
+                "base_opt":bopt[0],
+                #"base_opt_args":cfg_to_str(bopt[1]),
+                "opt":eopt[0],
+                #"opt_args":cfg_to_str(eopt[1]),
+                **run_experiment(impl_path, fimodel.name, path_to_testfile, n_repeat)
             }
         )
     
