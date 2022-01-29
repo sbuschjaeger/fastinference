@@ -1,5 +1,4 @@
 import json, os
-from turtle import window_width
 import numpy as np
 
 import sklearn.linear_model
