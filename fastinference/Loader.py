@@ -12,7 +12,7 @@ from fastinference.Util import NumpyEncoder
 from sklearn.linear_model import RidgeClassifier, LogisticRegression, Perceptron, PassiveAggressiveClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
-from sklearn.ensemble import BaggingClassifier, RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor
 
 def model_to_json(model, out_path, file_name = "model"):
     """Saves the model to a json file. It requires to_dict to be implemented. 
@@ -93,7 +93,7 @@ def model_from_sklearn(sk_model, name, accuracy):
         accuracy (float): The accuracy of this model on some test-data. This can be used to verify the generated code.
     Raises:
         ValueError: If isinstance(sk_model, instances) is False where 
-            instances = [RidgeClassifier, LogisticRegression, Perceptron, PassiveAggressiveClassifier, LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis, DecisionTreeRegressor, DecisionTreeClassifier, BaggingClassifier, RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor]
+            instances = [RidgeClassifier, LogisticRegression, Perceptron, PassiveAggressiveClassifier, LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis, DecisionTreeRegressor, DecisionTreeClassifier, RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor]
     Returns:
         Model: The loaded model.
     """    
@@ -103,7 +103,7 @@ def model_from_sklearn(sk_model, name, accuracy):
         return DiscriminantAnalysis.from_sklearn(sk_model, name, accuracy)
     elif isinstance(sk_model, (DecisionTreeRegressor, DecisionTreeClassifier)):
         return Tree.from_sklearn(sk_model, name, accuracy)
-    elif isinstance(sk_model, (BaggingClassifier, RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor)):
+    elif isinstance(sk_model, (RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor)):
         return fastinference.models.Ensemble.Ensemble.from_sklearn(sk_model, name, accuracy)
     else:
         raise ValueError("""
@@ -113,5 +113,5 @@ def model_from_sklearn(sk_model, name, accuracy):
             \tLINEAR: RidgeClassifier, LogisticRegression, Perceptron, PassiveAggressiveClassifier,
             \tDISCRIMINANT: LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
             \tTREE: DecisionTreeRegressor, DecisionTreeClassifier
-            \tENSEMBLE: BaggingClassifier, RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor
+            \tENSEMBLE: RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier, AdaBoostRegressor, GradientBoostingClassifier, GradientBoostingRegressor
         """ % type(sk_model).__name__)

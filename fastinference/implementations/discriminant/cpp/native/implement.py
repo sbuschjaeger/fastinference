@@ -20,6 +20,7 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         feature_type (str, optional): The data types of the input features. Defaults to "double".
         label_type (str, optional): The data types of the label. Defaults to "double".
     """
+
     env = Environment(
         loader=FileSystemLoader(os.path.join(os.path.dirname(os.path.abspath(__file__)))),
         trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True

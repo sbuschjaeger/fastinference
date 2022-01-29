@@ -8,7 +8,7 @@ from .Model import Model
 
 class DiscriminantAnalysis(Model):
     """
-    Placeholder class for all discriminant analysis models. Currently targetd towards scikit-learns QuadraticDiscriminantAnalysis.
+    Placeholder class for all discriminant analysis models. Currently targeted towards scikit-learns QuadraticDiscriminantAnalysis.
     """
     def __init__(self, classes, n_features, accuracy = None, name = "Model"):
         """Constructor of this DiscriminantAnalysis.
@@ -39,7 +39,10 @@ class DiscriminantAnalysis(Model):
         Returns:
             DiscriminantAnalysis: The newly generated DiscriminantAnalysis object.
         """
-        obj = DiscriminantAnalysis(sk_model.classes_, sk_model.n_features_in_, accuracy, name)
+        if len(sk_model.classes_) <= 2:
+            obj = DiscriminantAnalysis([0], sk_model.n_features_in_, accuracy, name)
+        else:
+            obj = DiscriminantAnalysis(sk_model.classes_, sk_model.n_features_in_, accuracy, name)
 
         obj.means = sk_model.means_
         obj.log_priors = np.log(sk_model.priors_)
@@ -83,7 +86,7 @@ class DiscriminantAnalysis(Model):
             X = X.reshape(1,X.shape[0])
         
         norm2 = []
-        for i in range(len(self.classes_)):
+        for i in range(len(self.classes)):
             R = self.rotations[i]
             S = self.scalings[i]
             Xm = X - self.means[i]
@@ -91,7 +94,12 @@ class DiscriminantAnalysis(Model):
             norm2.append(np.sum(X2 ** 2, axis=1))
         norm2 = np.array(norm2).T  # shape = [len(X), n_classes]
         u = np.asarray([np.sum(np.log(s)) for s in self.scalings])
-        return (-0.5 * (norm2 + u) + np.log(self.log_priors))
+        values = -0.5 * (norm2 + u)  + self.log_priors #+ np.log(self.log_priors))
+        #print(self.log_priors)
+        return values
+        #likelihood = np.exp(values - values.max(axis=1)[:, np.newaxis])
+        # compute posterior probabilities
+        #return likelihood / likelihood.sum(axis=1)[:, np.newaxis]
 
     def to_dict(self):
         """Stores this DiscriminantAnalysis model as a dictionary which can be loaded with :meth:`DiscriminantAnalysis.from_dict`.

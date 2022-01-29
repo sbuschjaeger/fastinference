@@ -97,7 +97,11 @@ class Model():
         Returns:
             [type]: [description]
         """
-        return self.predict_proba(X).argmax(axis=1)
+        proba = self.predict_proba(X)
+        if proba.shape[1] >= 2:
+            return proba.argmax(axis=1)
+        else:
+            return proba > 0
 
     def implement(self, out_path, out_name, implementation_type, **kwargs):
         os.makedirs(out_path, exist_ok = True)

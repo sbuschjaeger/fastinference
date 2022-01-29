@@ -58,7 +58,7 @@ def main():
             (["weight-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"sgd", "verbose":True}])
         ]
 
-    performance = test_implementations(model, args.dataset, args.split, implementations, base_optimizers, ensemble_optimizers, args.outpath, args.modelname)
+    performance = test_implementations(model = model, dataset= args.dataset, split = args.split, implementations = implementations, base_optimizers = base_optimizers, ensemble_optimizers=ensemble_optimizers, out_path = args.outpath, model_name = args.modelname)
 
     df = pd.DataFrame(performance)
     with pd.option_context('display.max_rows', None): 

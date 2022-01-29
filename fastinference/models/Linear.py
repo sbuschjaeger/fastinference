@@ -1,4 +1,5 @@
 import json, os
+from turtle import window_width
 import numpy as np
 
 import sklearn.linear_model
@@ -37,7 +38,11 @@ class Linear(Model):
         Returns:
             Linear: The newly generated linear model.
         """
-        model = Linear(sk_model.classes_, sk_model.n_features_in_, accuracy, name)
+        if len(sk_model.classes_) <= 2:
+            model = Linear([0], sk_model.n_features_in_, accuracy, name)
+        else:
+            model = Linear(sk_model.classes_, sk_model.n_features_in_, accuracy, name)
+
         model.intercept = sk_model.intercept_
         model.coef = sk_model.coef_.T
 
@@ -80,7 +85,7 @@ class Linear(Model):
         # proba = []
         # for x in X:
         #     proba.append(np.inner(x, self.coef) + self.intercept)
-        return np.array(proba)
+        return np.array(proba) + self.intercept
         
     def to_dict(self):
         """Stores this linear model as a dictionary which can be loaded with :meth:`Linear.from_dict`.

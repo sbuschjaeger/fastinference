@@ -29,8 +29,9 @@ void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }}
 	{% if weight != 1.0 %}
     pred[{{i}}] += -0.5 * {{weight}} * (norm2+ {{model.scale_log_sums[i]}}) + {{model.log_priors[i]}};
 	{% else %}
-    pred[{{i}}] += -0.5* (norm2 + {{model.scale_log_sums[i]}}) + {{model.log_priors[i]}};
+    pred[{{i}}] += -0.5 * (norm2 + {{model.scale_log_sums[i]}}) + {{model.log_priors[i]}};
 	{% endif %}
+	
 {% endfor %}
 }
 

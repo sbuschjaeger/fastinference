@@ -326,10 +326,11 @@ def test_implementations(model, dataset, split, implementations, base_optimizers
 
     print("Storing model")
     acc = accuracy_score(model.predict(XTest), YTest)*100.0
-    
-    if isinstance(model, (BaggingClassifier, DecisionTreeClassifier, RidgeClassifier, QuadraticDiscriminantAnalysis, RandomForestClassifier)):
+    if isinstance(model, (DecisionTreeClassifier, RidgeClassifier, QuadraticDiscriminantAnalysis, RandomForestClassifier)):
         fimodel = fastinference.Loader.model_from_sklearn(model, name = model_name, accuracy = acc)
         path_to_model = fastinference.Loader.model_to_json(fimodel, os.path.join(out_path), file_name=model_name)
+        print("SK ACC:", acc)
+        print("MY ACC:", accuracy_score(fimodel.predict(XTest), YTest)*100.0)
     else:
         path_to_model = model.store(out_path, acc, model_name)
         
@@ -341,7 +342,7 @@ def test_implementations(model, dataset, split, implementations, base_optimizers
     performance = []
 
     for impl, bopt, eopt in itertools.product(implementations, base_optimizers, ensemble_optimizers):
-        impl_path = os.path.join(out_path, fimodel.name + "_" + make_hash(impl) + "_" + make_hash(bopt) + "_" + make_hash(eopt))
+        impl_path = os.path.join(out_path, model_name + "_" + make_hash(impl) + "_" + make_hash(bopt) + "_" + make_hash(eopt))
 
         prepare_fastinference(path_to_model, impl_path, implementation_type = impl[0], implementation_args = impl[1], base_optimizer = bopt[0], base_optimizer_args = bopt[1], ensemble_optimizer = eopt[0], ensemble_optimizer_args = eopt[1])
 
@@ -353,8 +354,12 @@ def test_implementations(model, dataset, split, implementations, base_optimizers
                 #"base_opt_args":cfg_to_str(bopt[1]),
                 "opt":eopt[0],
                 #"opt_args":cfg_to_str(eopt[1]),
-                **run_experiment(impl_path, fimodel.name, path_to_testfile, n_repeat)
+                **run_experiment(impl_path, model_name, path_to_testfile, n_repeat)
             }
         )
+
+        # if len(bopt[0]) == 1 and bopt[0][0] is None and len(eopt[0]) == 1 and eopt[0][0] is None and abs(float(performance[-1]["diff accuracy"])) > 1e-5:
+        #     print("FAILED: Diff accuracy did not match in un-optimized implementation. Difference is {}".format(performance[-1]["diff accuracy"]))
+        #     sys.exit(1)
     
     return performance

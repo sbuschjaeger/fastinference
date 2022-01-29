@@ -27,18 +27,18 @@ jobs:
           nestimators: 1
           type: quadratic
       
-      - name: Test bagged QDA inference 
-        run: | 
-            cd $GITHUB_WORKSPACE
-            mkdir -p $outpath
-            cd tests
-            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
-        env:
-          data: eeg
-          outpath: /tmp/fastinference/BaggingDiscriminantAnalysis
-          modelname: BaggingDiscriminantAnalysis
-          nestimators: 5
-          type: quadratic
+      # - name: Test bagged QDA inference 
+      #   run: | 
+      #       cd $GITHUB_WORKSPACE
+      #       mkdir -p $outpath
+      #       cd tests
+      #       python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
+      #   env:
+      #     data: eeg
+      #     outpath: /tmp/fastinference/BaggingDiscriminantAnalysis
+      #     modelname: BaggingDiscriminantAnalysis
+      #     nestimators: 5
+      #     type: quadratic
 
       - name: Test ridge inference 
         run: | 
@@ -53,15 +53,15 @@ jobs:
           nestimators: 1
           type: linear 
 
-      - name: Test bagged ridge inference 
-        run: | 
-            cd $GITHUB_WORKSPACE
-            mkdir -p $outpath
-            cd tests
-            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
-        env:
-          data: eeg
-          outpath: /tmp/fastinference/BaggingRidgeRegressionClassifier
-          modelname: BaggingRidgeRegressionClassifier
-          nestimators: 5
-          type: linear 
+      # - name: Test bagged ridge inference 
+      #   run: | 
+      #       cd $GITHUB_WORKSPACE
+      #       mkdir -p $outpath
+      #       cd tests
+      #       python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
+      #   env:
+      #     data: eeg
+      #     outpath: /tmp/fastinference/BaggingRidgeRegressionClassifier
+      #     modelname: BaggingRidgeRegressionClassifier
+      #     nestimators: 5
+      #     type: linear 

@@ -146,8 +146,9 @@ class NeuralNet(Model):
             input_shape = layer.output_shape
         
         # TODO There might be an actual class mapping in the onnx file?
+        n_features = graph.input[0].type.tensor_type.shape.dim[1].dim_value
         classes = [i for i in range(n_classes)]
-        super().__init__(classes, n_features = input_shape, category = "neuralnet", name = name, accuracy = accuracy)
+        super().__init__(classes, n_features = n_features, category = "neuralnet", name = name, accuracy = accuracy)
 
     def predict_proba(self,X):
         """Applies this NeuralNet to the given data and provides the predicted probabilities for each example in X. This function internally calls :code:`onnxruntime.InferenceSession` for inference.. 

@@ -1,3 +1,4 @@
+from ctypes.wintypes import DWORD
 import os
 import numpy as np
 
@@ -21,6 +22,13 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         label_type (str, optional): The data types of the label. Defaults to "double".
     """
 
+    if weight != 1.0:
+        model.coef *= weight 
+        model.intercept *= weight 
+    
+    model.coef = model.coef.T.tolist()
+    model.intercept = model.intercept.tolist()
+        
     env = Environment(
         loader=FileSystemLoader(os.path.join(os.path.dirname(os.path.abspath(__file__)))),
         trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True

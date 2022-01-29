@@ -60,6 +60,10 @@ class Ensemble(Model):
             model.models = []
             for i, base in enumerate(sk_model.estimators_):
                 model.models.append(fastinference.Loader.model_from_sklearn(base, "{}_base_{}".format(name,i), accuracy))
+            
+            # Do not trust the number of classes of the ensemble, because a linear / quadratic function may have fewer classes
+            model.classes = model.models[0].classes
+
         else:
             raise ValueError("""
                 Received an unrecognized sklearn model. Expected was one of: 

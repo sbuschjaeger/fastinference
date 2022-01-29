@@ -201,9 +201,9 @@ def main():
     args = parser.parse_args()
 
     if args.dataset == "eeg":
-        n_features, n_classes = 14,2
+        n_features, n_classes = 13,2
     elif args.dataset == "magic":
-        n_features, n_classes = 11,2
+        n_features, n_classes = 10,2
     elif args.dataset in ["mnist", "fashion"]:
         n_features, n_classes = 28*28,10
     else:
@@ -224,7 +224,7 @@ def main():
         ([None], [{}])
     ]
 
-    performance = test_implementations(model, args.dataset, args.split, implementations, optimizers, args.outpath, args.modelname)
+    performance = test_implementations(model = model, dataset= args.dataset, split = args.split, implementations = implementations, base_optimizers = optimizers, out_path = args.outpath, model_name = args.modelname)
     df = pd.DataFrame(performance)
     print(df)
 

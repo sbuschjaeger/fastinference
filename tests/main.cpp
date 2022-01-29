@@ -83,18 +83,24 @@ auto benchmark(std::vector<std::vector<FEATURE_TYPE>> &X, std::vector<unsigned i
 			FEATURE_TYPE const * const x = &X[i][0];
 			predict(x, output);
 
-	        double max = output[0];
-	        unsigned int argmax = 0;
-	        for (unsigned int j = 1; j < N_CLASSES; j++) {
-	            if (output[j] > max) {
-	                max = output[j];
-	                argmax = j;
-	            }
-	        }
+			if constexpr (N_CLASSES >= 2) {
+				double max = output[0];
+				unsigned int argmax = 0;
+				for (unsigned int j = 1; j < N_CLASSES; j++) {
+					if (output[j] > max) {
+						max = output[j];
+						argmax = j;
+					}
+				}
 
-			if (argmax == label) {
-				++matches;
-			}
+				if (argmax == label) {
+					++matches;
+				}
+			} else {
+				if ( (output[0] < 0 && label == 0) || (output[0] >= 0 && label == 1) ) {
+					++matches;
+				}
+			} 
 	    }
     }
 

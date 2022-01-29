@@ -3,17 +3,9 @@ namespace {{namespace}} {
 {{ code_static }}
 
 void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
-    {% if model.n_classes == 0 %}
-    *pred += {{model.intercept}} {% for c in model.coef %} + x[{{loop.index-1}}]*{{c}} {% endfor %};
-    {% else %}
-        {% for c1 in model.coef %}
-            {% if weight != 1.0 %}
-    pred[{{loop.index-1}}] += {{weight}} * ({{model.intercept[loop.index-1]}} {% for c2 in c1 %}  + x[{{loop.index-1}}]*{{c2}} {% endfor %});
-            {% else %}
-    pred[{{loop.index-1}}] += {{model.intercept[loop.index-1]}} {% for c2 in c1 %}  + x[{{loop.index-1}}]*{{c2}} {% endfor %};
-            {% endif %}
-        {% endfor %}
-    {% endif %}
+    {% for c1 in model.coef %}
+pred[{{loop.index-1}}] += {{model.intercept[loop.index-1]}} {% for c2 in c1 %}  + x[{{loop.index-1}}]*{{c2}} {% endfor %};
+    {% endfor %}
 }
 
 }

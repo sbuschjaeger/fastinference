@@ -13,11 +13,7 @@ void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }}
         for (unsigned int i = 0; i < {{model.coef[0]|length}}; ++i) {
             sum += {{model.name}}::coef[j][i] * x[i];
         }
-        {% if weight != 1.0 %}
-        pred[j] += {{weight}} * sum; 
-        {% else %}
         pred[j] += sum; 
-        {% endif %}
     }
 }
 
