@@ -14,6 +14,23 @@ Fastinference is a machine learning model optimizer and model compiler that gene
 
 Fastinference is currently targeted to small, embedded systems as well as FPGAs, but we are always open to expand it use. For more details please see the [documentation](https://sbuschjaeger.github.io/fastinference/html/index.html).
 
+Fastinference currently supports the following implementations
+
+| Method         | cpp               | FPGA      | [haxe](https://haxe.org/) | [iree](https://github.com/google/iree) |
+|----------------|-------------------|-----------|---------------------------|----------------------------------------|
+| Decision Trees | ifelse,  native   |           |                           |                                        |
+| Linear         | native, unroll    |           | native                    |                                        |
+| Discriminant   | native            |           |                           |                                        |
+| MLP            | native, binarized | binarized |                           | native                                 |
+| CNN            | native, binarized | binarized |                           | native                                 |
+| Ensemble       | native            |           |                           |                                        |
+
+and offers the following optimizations
+
+- Decision Trees: swap, quantization
+- Ensemble: leaf-refinement, weight-refinement, [pruning](https://github.com/sbuschjaeger/pypruning), weight-refinement, linear-merging
+- MLP + CNN: merge and remove nodes
+
 # How to install
 
 You can install this package via pip from git 
@@ -39,7 +56,7 @@ If you have stored your model on disk (e.g. as an `json` file) then you can gene
 
 This call will load the model stored in `/my/nice/model.json`, performs the optimizations implemented in `my.newest.optimization` and then finally generates the implementation according to `my.newest.implementation` where the data type of features is `float`. Any additional arguments passed to `main.py` will be passed to the `my.newest.optimization` and `my.newest.implementation` respectively so you can just pass anything you require. Note that for ensembles you can additionally pass `baseimplementation` and `baseoptimize` to specify optimizations on the base learners as well as their respective implementations.
 
-For Linear, Discriminant, Tree, Ensemble models we currently support `.json` files which have previously been written via `Loader.model_to_json`. For Neural Networks we use `onnx` files which e.g. have been written via `torch.onnx.export` or `tf2onnx`. Reading onnx files can be tricky sometimes so please check out Neural Network for caveats. 
+For Linear, Discriminant, Tree, Ensemble models we currently support `.json` files which have previously been written via `Loader.model_to_json`. For Neural Networks we use `onnx` files which e.g. have been written via `torch.onnx.export` or `tf2onnx`. Reading onnx files can be tricky sometimes so please check out the documentation for caveats. 
 
 ## Using fastinference in your python program
 
@@ -90,6 +107,7 @@ There is a CI/CD pipeline running which tests the current code and uses `tests/r
 - Buschjäger, Sebastian, and Katharina Morik. "Decision tree and random forest implementations for fast filtering of sensor data." IEEE Transactions on Circuits and Systems I: Regular Papers 65.1 (2017): 209-222. (https://ieeexplore.ieee.org/document/7962153)
 - Buschjager, Sebastian, et al. "Realization of random forest for real-time evaluation through tree framing." 2018 IEEE International Conference on Data Mining (ICDM). IEEE, 2018. (https://ieeexplore.ieee.org/document/8594826)
 - Buschjäger, Sebastian, et al. "On-Site Gamma-Hadron Separation with Deep Learning on FPGAs." ECML/PKDD (4). 2020. (https://link.springer.com/chapter/10.1007/978-3-030-67667-4_29)
+- Chen, Kuan-Hsun et al. "Efficient Realization of Decision Trees for Real-Time Inference" ACM Transactions on Embedded Computing Systems 2022 (to appear)
 
 # Acknowledgements
 The software is written and maintained by [Sebastian Buschjäger](https://sbuschjaeger.github.io/) as part of his work at the [Chair for Artificial Intelligence](https://www-ai.cs.tu-dortmund.de)at the TU Dortmund University and the [Collaborative Research Center 876](https://sfb876.tu-dortmund.de>). If you have any question feel free to contact me under sebastian.buschjaeger@tu-dortmund.de.

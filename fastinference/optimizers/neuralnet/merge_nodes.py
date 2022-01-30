@@ -8,9 +8,9 @@ from fastinference.models.nn.AveragePool import AvgPool2d
 from fastinference.models.nn.Activations import LogSoftmax, LeakyRelu, Relu, Sigmoid, Sign
 
 def optimize(model, **kwargs):
-    """Merges subsequent BatchNorm and Step layers into a new Step layer with adapted thresholds in a single pass. Currently there is no recursive mergeing applied.
+    """Merges subsequent BatchNorm and Step layers into a new Step layer with adapted thresholds in a single pass. Currently there is no recursive merging applied.
 
-    TODO: Perform merging recursivley. 
+    TODO: Perform merging recursively. 
 
     Args:
         model (NeuralNet): The NeuralNet model.
@@ -22,11 +22,9 @@ def optimize(model, **kwargs):
     new_layers = []
     last_layer = None
     for layer_id, layer in enumerate(model.layers):
-        print("CHECKING {}".format(layer.name))
         if last_layer is not None:
             if isinstance(last_layer, BatchNorm) and isinstance(layer, Step):
                 layer.threshold = layer.threshold -last_layer.bias / last_layer.scale
-                print("NEW STEP THRESHOLD IS {}".format(layer.threshold))
             else:
                 new_layers.append(last_layer)
         last_layer = layer

@@ -19,12 +19,11 @@ jobs:
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
             cd tests
-            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
+            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --type $type
         env:
           data: eeg
           outpath: /tmp/fastinference/DiscriminantAnalysis
           modelname: DiscriminantAnalysis
-          nestimators: 1
           type: quadratic
       
       # - name: Test bagged QDA inference 
@@ -45,12 +44,11 @@ jobs:
             cd $GITHUB_WORKSPACE
             mkdir -p $outpath
             cd tests
-            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --nestimators $nestimators --type $type
+            python3 test_linear.py --dataset $data --outpath $outpath --modelname $modelname --type $type
         env:
           data: eeg
           outpath: /tmp/fastinference/RidgeRegressionClassifier
           modelname: RidgeRegressionClassifier
-          nestimators: 1
           type: linear 
 
       # - name: Test bagged ridge inference 

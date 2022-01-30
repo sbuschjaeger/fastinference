@@ -10,5 +10,5 @@ namespace {{namespace}} {
     #define N_CLASSES {{model.n_classes}}
     #define N_FEATURES {{model.n_features}}
 
-    void predict_{{ name }}({{ feature_type }} const * const x, {{ label_type }} * pred);
+    void predict_{{ model.name }}({{ feature_type }} const * const x, {{ label_type }} * pred);
 }

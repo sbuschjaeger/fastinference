@@ -401,7 +401,7 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
     )
 
     header = env.get_template("header.j2").render(
-        name= model.name,
+        model = model,
         accuracy = model.accuracy,
         feature_type = feature_type,
         namespace = namespace,
