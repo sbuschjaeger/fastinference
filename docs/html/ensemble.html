@@ -47,7 +47,7 @@
 <li class="toctree-l2"><a class="reference internal" href="tree.html">Tree</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Ensemble</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#available-optimizations">Available optimizations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#the-ensemble-object">The Ensemble object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-fastinference.models.Ensemble">The Ensemble object</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="neuralnet.html">Neural Networks</a></li>
@@ -88,8 +88,131 @@
 <section id="available-optimizations">
 <h2>Available optimizations<a class="headerlink" href="#available-optimizations" title="Permalink to this headline"></a></h2>
 </section>
-<section id="the-ensemble-object">
-<h2>The Ensemble object<a class="headerlink" href="#the-ensemble-object" title="Permalink to this headline"></a></h2>
+<section id="module-fastinference.models.Ensemble">
+<span id="the-ensemble-object"></span><h2>The Ensemble object<a class="headerlink" href="#module-fastinference.models.Ensemble" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="fastinference.models.Ensemble.Ensemble">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fastinference.models.Ensemble.</span></span><span class="sig-name descname"><span class="pre">Ensemble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'model'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Ensemble.Ensemble" title="Permalink to this definition"></a></dt>
+<dd><p>A Ensemble implementation. There is nothing fancy going on here. It stores all models of the ensemble in an array <code class="code docutils literal notranslate"><span class="pre">self.models</span></code> and the corresponding weights in <code class="code docutils literal notranslate"><span class="pre">self.weights</span></code>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Ensemble.Ensemble.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'model'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Ensemble.Ensemble.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of this ensemble.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>classes</strong> (<em>int</em>) – The class mappings. Each enty maps the given entry to the corresponding index so that the i-th output of the model belongs to class classes[i]. For example with classes = [1,0,2] the second output of the model maps to class 0, the first output to class 1 and the third output to class 2.
+n_features (list of int): The number of features this model was trained on.</p></li>
+<li><p><strong>accuracy</strong> (<em>float</em><em>, </em><em>optional</em>) – The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of this model. Defaults to “Model”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Ensemble.Ensemble.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Ensemble.Ensemble.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a new ensemble from the given dictionary. It is assumed that the ensemble has previously been stored with the <a class="reference internal" href="#fastinference.models.Ensemble.Ensemble.to_dict" title="fastinference.models.Ensemble.Ensemble.to_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Ensemble.to_dict()</span></code></a> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – The dictionary from which this ensemble should be generated.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The newly generated ensemble.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fastinference.models.Ensemble.Ensemble" title="fastinference.models.Ensemble.Ensemble">Ensemble</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Ensemble.Ensemble.from_sklearn">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_sklearn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sk_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'model'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Ensemble.Ensemble.from_sklearn" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a new ensemble from an sklearn ensemble.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sk_model</strong> – A scikit-learn ensemble. Currently supported are <code class="code docutils literal notranslate"><span class="pre">{BaggingClassifier,</span> <span class="pre">RandomForestClassifier,</span> <span class="pre">ExtraTreesClassifier,</span> <span class="pre">AdaBoostClassifier,</span> <span class="pre">AdaBoostRegressor,</span> <span class="pre">GradientBoostingClassifier,</span> <span class="pre">GradientBoostingRegressor}</span></code></p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of this model. Defaults to “Model”.</p></li>
+<li><p><strong>accuracy</strong> (<em>float</em><em>, </em><em>optional</em>) – The accuracy of this tree on some test data. Can be used to verify the correctness of the implementation. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The newly generated ensemble.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#fastinference.models.Ensemble.Ensemble" title="fastinference.models.Ensemble.Ensemble">Ensemble</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Ensemble.Ensemble.implement">
+<span class="sig-name descname"><span class="pre">implement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implementation_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_implementation</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Ensemble.Ensemble.implement" title="Permalink to this definition"></a></dt>
+<dd><p>Implements this ensemble.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>out_path</strong> (<em>str</em>) – Folder in which this ensemble should be stored.</p></li>
+<li><p><strong>out_name</strong> (<em>name</em>) – Filename in which this ensemble should be stored.</p></li>
+<li><p><strong>implementation_type</strong> (<em>str</em>) – The implementation which should be used to implement this ensemble, e.g. <code class="code docutils literal notranslate"><span class="pre">cpp</span></code></p></li>
+<li><p><strong>base_implementation</strong> (<em>str</em>) – The implementation which should be used to implement the base learners, e.g. <code class="code docutils literal notranslate"><span class="pre">cpp.ifelse</span></code> for trees.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Ensemble.Ensemble.optimize">
+<span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimizers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_optimizers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Ensemble.Ensemble.optimize" title="Permalink to this definition"></a></dt>
+<dd><p>Optimizes this ensemble and all of its base learners.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>optimizers</strong> (<em>list of str</em>) – A list of strings which should be used to optimize this ensemble.</p></li>
+<li><p><strong>args</strong> (<em>list of dict</em>) – A list of dictionaries containing the arguments for the respective optimizer.</p></li>
+<li><p><strong>base_optimizers</strong> (<em>list of str</em>) – A list of strings which should be used to optimize the base learners of this ensemble.</p></li>
+<li><p><strong>base_args</strong> (<em>list of dict</em>) – A list of dictionaries containing the arguments for the respective base optimizer.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Ensemble.Ensemble.predict_proba">
+<span class="sig-name descname"><span class="pre">predict_proba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Ensemble.Ensemble.predict_proba" title="Permalink to this definition"></a></dt>
+<dd><p>Applies this ensemble to the given data and provides the predicted probabilities for each example in X.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>numpy.array</em>) – A (N,d) matrix where N is the number of data points and d is the feature dimension. If X has only one dimension then a single example is assumed and X is reshaped via <code class="code docutils literal notranslate"><span class="pre">X</span> <span class="pre">=</span> <span class="pre">X.reshape(1,X.shape[0])</span></code></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A (N, c) prediction matrix where N is the number of data points and c is the number of classes</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fastinference.models.Ensemble.Ensemble.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.Ensemble.Ensemble.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Stores this ensemble as a dictionary which can be loaded with <a class="reference internal" href="#fastinference.models.Ensemble.Ensemble.from_dict" title="fastinference.models.Ensemble.Ensemble.from_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Ensemble.from_dict()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The dictionary representation of this ensemble.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
