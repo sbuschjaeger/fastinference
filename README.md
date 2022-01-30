@@ -25,7 +25,9 @@ Fastinference currently supports the following implementations
 | CNN            | native, binarized | binarized |                           | native                                 |
 | Ensemble       | native            |           |                           |                                        |
 
-and offers the following optimizations
+**Note**: Haxe and iree implementations are currently experimental. They are not part of the CI/CD pipeline yet.
+
+Fastinference currently offers the following optimizations
 
 - Decision Trees: swap, quantization
 - Ensemble: leaf-refinement, weight-refinement, [pruning](https://github.com/sbuschjaeger/pypruning), weight-refinement, linear-merging
