@@ -196,9 +196,9 @@ class Tree(Model):
 			entry = dicts.pop(0)
 			node.id = len(tree.nodes) #entry["id"]
 			node.numSamples = int(entry["numSamples"])
+			node.pathProb = entry["pathProb"]
 
 			if "prediction" in entry and entry["prediction"] is not None:
-				node.pathProb = entry["pathProb"]
 				node.prediction = entry["prediction"]
 				tree.nodes.append(node)
 			else:
@@ -209,7 +209,6 @@ class Tree(Model):
 				node.split = entry["split"]
 				#node.rightChild = entry["rightChild"]["id"]
 				#node.leftChild = entry["leftChild"]["id"]
-				node.pathProb = entry["pathProb"]
 
 				tree.nodes.append(node)
 				if node.prediction is None:
