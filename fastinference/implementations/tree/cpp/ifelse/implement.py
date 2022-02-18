@@ -3,7 +3,7 @@ import numpy as np
 import heapq
 
 from jinja2 import Environment, FileSystemLoader
-from sphinx import subprocess
+import subprocess
     
 def compute_node_sizes(tree, out_path, feature_type = "double", label_type = "double", weight = 1.0, compiler = "g++", objdump = "objdump"):
     """ Estimates the size of each node (in Bytes) in the tree by compiling dummy code with the given compiler and de-compiling it using objdump. Make sure that `compiler` and `objdump` are set correctly. If you want to use a cross-compiler (e.g. `arm-linux-gnueabihf-gcc`) you can set the path here accordingly. 

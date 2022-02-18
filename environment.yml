@@ -13,6 +13,7 @@ dependencies:
   - torchvision 
   - torchaudio 
   - cudatoolkit=10.2
+  - xgboost
   - pip
   - pip:
     - onnx
