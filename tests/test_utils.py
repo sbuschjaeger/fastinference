@@ -218,17 +218,16 @@ def prepare_onnxmodel(onnx_path, out_path, name, benchmark_file, implementation_
     if len(base_optimizer) > 0 and base_optimizer[0] is not None:
         fi_model.optimize(base_optimizer, base_optimizer_args)
     fi_model.implement(out_path, "model", "cpp.{}".format(implementation_type), **implementation_args)
-        
 
     prepare_and_compile = """
     cp ./main.cpp {outpath} && 
     cp {test_file} {outpath}/ && 
     cp ./CMakeLists.txt {outpath}
-    """.replace("{outpath}", out_path).replace("{name}", name).replace("{feature_type}", "double").replace("{test_file}", benchmark_file)
+    """.replace("{outpath}", out_path).replace("{test_file}", benchmark_file)
     
     subprocess.call(prepare_and_compile, shell=True)
 
-def run_experiment(out_path, name, benchmark_file, n_repeat = 5):
+def run_experiment(out_path, name, feature_type, label_type, benchmark_file, n_repeat = 5):
     """Compiles and executes the cpp code in the given filename using the supplied benchmark file.
 
     Note 1: This code requires cmake for the compilation.
@@ -248,8 +247,8 @@ def run_experiment(out_path, name, benchmark_file, n_repeat = 5):
     
     prepare_and_compile = """
     cd {outpath} &&
-    cmake . -DMODELNAME={name} -DFEATURE_TYPE={feature_type} &&
-    make""".replace("{outpath}", out_path).replace("{name}", name).replace("{feature_type}", "double").replace("{test_file}", benchmark_file)
+    cmake . -DMODELNAME={name} -DLABEL_TYPE={label_type} -DFEATURE_TYPE={feature_type} &&
+    make""".replace("{outpath}", out_path).replace("{name}", name).replace("{feature_type}", feature_type).replace("{label_type}", label_type).replace("{test_file}", benchmark_file)
     
     print("Calling {}".format(prepare_and_compile))
     subprocess.call(prepare_and_compile, shell=True)
@@ -338,13 +337,17 @@ def test_implementations(model, dataset, split, implementations, base_optimizers
     dfTest = pd.concat([pd.DataFrame(XTest, columns=["f{}".format(i) for i in range(len(XTrain[0]))]), pd.DataFrame(YTest,columns=["label"])], axis=1)
     path_to_testfile = os.path.join(out_path, "testing.csv")
     dfTest.to_csv(path_to_testfile, header=True, index=False)
-
     performance = []
-
+    print(implementations)
+    print(base_optimizers)
+    print(ensemble_optimizers)
     for impl, bopt, eopt in itertools.product(implementations, base_optimizers, ensemble_optimizers):
         impl_path = os.path.join(out_path, model_name + "_" + make_hash(impl) + "_" + make_hash(bopt) + "_" + make_hash(eopt))
 
         prepare_fastinference(path_to_model, impl_path, implementation_type = impl[0], implementation_args = impl[1], base_optimizer = bopt[0], base_optimizer_args = bopt[1], ensemble_optimizer = eopt[0], ensemble_optimizer_args = eopt[1])
+
+        feature_type = impl[1].get("feature_type", "double")
+        label_type = impl[1].get("label_type", "double")
 
         performance.append(
             {
@@ -354,7 +357,7 @@ def test_implementations(model, dataset, split, implementations, base_optimizers
                 #"base_opt_args":cfg_to_str(bopt[1]),
                 "opt":eopt[0],
                 #"opt_args":cfg_to_str(eopt[1]),
-                **run_experiment(impl_path, model_name, path_to_testfile, n_repeat)
+                **run_experiment(impl_path, model_name, feature_type, label_type, path_to_testfile, n_repeat)
             }
         )
 

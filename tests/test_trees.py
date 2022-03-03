@@ -31,29 +31,32 @@ def main():
     XTrain, YTrain, _, _ = get_dataset(args.dataset,split=args.split)
 
     implementations = [ 
-        ("ifelse",{}), 
-        ("native",{})] + [
+        ("ifelse",{"label_type":"double"}), 
+        ("native",{"label_type":"double"})] + [
         ("ifelse",{"kernel_type":"path", "kernel_budget":b}) for b in [128]] + [
         ("ifelse",{"kernel_type":"node", "kernel_budget":b}) for b in [128]] + [
         ("native", {"reorder_nodes":True, "set_size":s}) for s in [8]
     ]
 
-    base_optimizers = [
-        ([None], [{}]),
-        (["quantize"],[{"quantize_splits":"rounding", "quantize_leafs":"fixed", "quantize_factor":1000}]),
-        (["quantize"],[{"quantize_leafs":"fixed", "quantize_factor":1000}])
-    ]
-
     if args.nestimators <= 1:
         model = DecisionTreeClassifier(max_depth=args.maxdepth)
-        ensemble_optimizers = []
-        base_optimizers.append(
-            (["leaf-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"adam", "verbose":True}])
-        )
+        base_optimizers = [
+            ([None], [{}]),
+            (["quantize"],[{"quantize_splits":"rounding", "quantize_leafs":"fixed", "quantize_factor":1000}]),
+            (["quantize"],[{"quantize_leafs":"fixed", "quantize_factor":1000}]),
+        ]
+        ensemble_optimizers = [
+            ([None], [{}])
+        ]
     else:
         model = RandomForestClassifier(n_estimators=args.nestimators, max_depth=args.maxdepth, max_leaf_nodes=512)
+        base_optimizers = [
+            ([None], [{}]),
+        ]
+
         ensemble_optimizers = [
             ([None], [{}]),
+            (["quantize"],[{"quantize_splits":"rounding", "quantize_leafs":"fixed", "quantize_factor":10000}]),
             (["leaf-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"adam", "verbose":True}]),
             (["weight-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"sgd", "verbose":True}])
         ]

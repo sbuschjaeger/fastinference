@@ -213,7 +213,7 @@ def main():
     model = SimpleMLP(n_features, n_classes, args.binarize, args.outpath)
 
     implementations = [ 
-        ("NHWC",{})
+        ("NHWC",{"feature_type":"double"})
     ]
     
     if args.binarize:

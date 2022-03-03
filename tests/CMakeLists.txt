@@ -19,9 +19,10 @@ endif()
 # Since treelite uses a slightly different function signature (e.g. it works on Arrays of entrys not arrays of floats)
 # we also supply the option to compile for treelite. This can get messy in the future if there are more systems to support
 # but so far having two different options seems okay
-SET(MODELNAME "" CACHE STRING "Name of the model / classifier. Usually found in the corresponding JSON file.")
+# SET(MODELNAME "" CACHE STRING "Name of the model / classifier. Usually found in the corresponding JSON file.")
 
 SET(FEATURE_TYPE "" CACHE STRING "Data type of input features, e.g. int or double")
+SET(LABEL_TYPE "" CACHE STRING "Data type of labels, e.g. int or double")
 
 
 # if (CMAKE_CROSSCOMPILING)
@@ -36,4 +37,4 @@ file(GLOB SRC_CPP
 
 add_executable(testCode main.cpp ${SRC_CPP})
 
-target_compile_definitions(testCode PRIVATE -Dpredict=predict_${MODELNAME} -DFEATURE_TYPE=${FEATURE_TYPE})
+target_compile_definitions(testCode PRIVATE -Dpredict=predict_${MODELNAME} -DFEATURE_TYPE=${FEATURE_TYPE} -DLABEL_TYPE=${LABEL_TYPE})

@@ -62,7 +62,7 @@ auto read_csv(std::string &path) {
 
 auto benchmark(std::vector<std::vector<FEATURE_TYPE>> &X, std::vector<unsigned int> &Y, unsigned int repeat) {
     //double output[N_CLASSES] = {0};
-	double * output = new double[N_CLASSES];
+	LABEL_TYPE * output = new LABEL_TYPE[N_CLASSES];
     unsigned int n_features = X[0].size();
 
 	unsigned int matches = 0;
@@ -84,7 +84,7 @@ auto benchmark(std::vector<std::vector<FEATURE_TYPE>> &X, std::vector<unsigned i
 			predict(x, output);
 
 			if constexpr (N_CLASSES >= 2) {
-				double max = output[0];
+				LABEL_TYPE max = output[0];
 				unsigned int argmax = 0;
 				for (unsigned int j = 1; j < N_CLASSES; j++) {
 					if (output[j] > max) {
