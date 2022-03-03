@@ -38,17 +38,12 @@ def optimize(model, quantize_splits = None, quantize_leafs = None, quantize_fact
     """
     if quantize_splits in ["rounding", "fixed"]:
         for n in model.nodes:
-            if n.prediction is None:
+            if n.split is not None:
                 if quantize_splits == "rounding":
                     n.split = np.ceil(n.split).astype(int)
                 else:
                     n.split = np.ceil(n.split * quantize_factor).astype(int)
     
-    if quantize_leafs == "fixed":
-        for n in model.nodes:
-            if n.prediction is not None:
-                n.prediction = np.ceil(np.array(n.prediction) * quantize_factor).astype(int).tolist()
-
     # Prune the DT by removing sub-trees that are not accessible any more.
     fmin = [float('-inf') for _ in range(model.n_features)]
     fmax = [float('inf') for _ in range(model.n_features)]
@@ -94,5 +89,10 @@ def optimize(model, quantize_splits = None, quantize_leafs = None, quantize_fact
             to_expand.append(n.rightChild)
 
     model.nodes = new_nodes
+
+    if quantize_leafs == "fixed":
+        for n in model.nodes:
+            if n.prediction is not None:
+                n.prediction = np.ceil(np.array(n.prediction) * quantize_factor).astype(int).tolist()
 
     return model

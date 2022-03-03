@@ -232,6 +232,7 @@ class Tree(Model):
 		model_dict["probLeft"] = node.probLeft
 		model_dict["probRight"] = node.probRight
 		model_dict["prediction"] = node.prediction
+		print("PRED:", node.prediction)
 		model_dict["isCategorical"] = node.isCategorical
 		model_dict["feature"] = node.feature
 		model_dict["split"] = node.split

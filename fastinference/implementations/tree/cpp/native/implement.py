@@ -143,7 +143,7 @@ def get_nodes(model):
             to_expand.append( (cid, False, n.rightChild) )
     return inner_nodes, leaf_nodes
 
-def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", int_type = "unsigned int", output_debug = False, infer_types = False, reorder_nodes = False, set_size = 8, force_cacheline = False, **kwargs):
+def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", int_type = "unsigned int", output_debug = False, infer_types = True, reorder_nodes = False, set_size = 8, force_cacheline = False, **kwargs):
     """Generates a native C++ implementation of the given Tree model. Native means that the tree is represented in an array structure which is iterated via a while-loop. You can use this implementation by simply passing :code:`"cpp.native"` to the implement, e.g.
 
     .. code-block:: python
@@ -192,6 +192,42 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         else:
             int_type = "unsigned long"
 
+        # It might be interstring to use a different split_type for splits, but this can get weird if split_type != feautre_type
+        # So lets leave this code here for now and see what happens
+        
+        # split_type = None
+        # min_split = None
+        # max_split = None
+        # for n in inner_nodes:
+        #     if isinstance(n.split, (np.float, float)):
+        #         split_type = "double"
+        #         break
+        #     else:
+        #         if max_split is None or n.split > max_split:
+        #             max_split = n.split
+        #         if min_split is None or n.split < min_split:
+        #             min_split = n.split
+        
+        # if split_type is None:
+        #     if min_split is None or max_split is None:
+        #         split_type = "double"
+        #     elif max_split < 2**8 and min_split > 0:
+        #         split_type = "unsigned char"
+        #     elif max_split < 2**7 and min_split > -2**7:
+        #         split_type = "char"
+        #     elif max_split < 2**16 and min_split > 0:
+        #         split_type = "unsigned short"
+        #     elif max_split < 2**15 and min_split > -2**15:
+        #         split_type = "short"
+        #     elif max_split < 2**32 and min_split > 0:
+        #         split_type = "unsigned int"
+        #     elif max_split < 2**31 and min_split > -2**31:
+        #         split_type = "int"
+        #     elif min_split > 0:
+        #         split_type = "unsigned long"
+        #     else:
+        #         split_type = "long"
+
     implementation = env.get_template('base.j2').render(
         model = model,
         model_name = model.name,
@@ -202,7 +238,7 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         weight = weight,
         int_type = int_type,
         leaf_nodes = leaf_nodes,
-        inner_nodes = inner_nodes
+        inner_nodes = inner_nodes,
     )
 
     header = env.get_template('header.j2').render(
@@ -214,7 +250,7 @@ def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST
         model_weight = weight,
         int_type = int_type,
         leaf_nodes = leaf_nodes,
-        inner_nodes = inner_nodes
+        inner_nodes = inner_nodes,
     )
 
     with open(os.path.join(out_path, "{}.{}".format(out_name,"cpp") ), 'w') as out_file:

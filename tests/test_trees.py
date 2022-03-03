@@ -31,11 +31,11 @@ def main():
     XTrain, YTrain, _, _ = get_dataset(args.dataset,split=args.split)
 
     implementations = [ 
-        ("ifelse",{"label_type":"double"}), 
-        ("native",{"label_type":"double"})] + [
-        ("ifelse",{"kernel_type":"path", "kernel_budget":b}) for b in [128]] + [
-        ("ifelse",{"kernel_type":"node", "kernel_budget":b}) for b in [128]] + [
-        ("native", {"reorder_nodes":True, "set_size":s}) for s in [8]
+        # ("ifelse",{"label_type":"short"}), 
+        ("native",{"label_type":"short", "infer_types":True})] + [
+        # ("ifelse",{"kernel_type":"path", "kernel_budget":b}) for b in [128]] + [
+        # ("ifelse",{"kernel_type":"node", "kernel_budget":b}) for b in [128]] + [
+        # ("native", {"reorder_nodes":True, "set_size":s}) for s in [8]
     ]
 
     if args.nestimators <= 1:
@@ -55,10 +55,10 @@ def main():
         ]
 
         ensemble_optimizers = [
-            ([None], [{}]),
+            #([None], [{}]),
             (["quantize"],[{"quantize_splits":"rounding", "quantize_leafs":"fixed", "quantize_factor":10000}]),
-            (["leaf-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"adam", "verbose":True}]),
-            (["weight-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"sgd", "verbose":True}])
+            #(["leaf-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"adam", "verbose":True}]),
+            #(["weight-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"sgd", "verbose":True}])
         ]
 
     performance = test_implementations(model = model, dataset= args.dataset, split = args.split, implementations = implementations, base_optimizers = base_optimizers, ensemble_optimizers=ensemble_optimizers, out_path = args.outpath, model_name = args.modelname)
