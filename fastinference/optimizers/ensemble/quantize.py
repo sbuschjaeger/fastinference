@@ -1,7 +1,8 @@
 from fastinference.models.Tree import Tree
 
 
-def optimize(model, quantize_splits = None, quantize_leafs = None, quantize_factor = 1000, **kwargs):
+def optimize(model, quantize_splits = None, quantize_leafs = None, **kwargs):
+
     """Quantizes the splits and predictions in the leaf nodes of the given tree and prunes away unreachable parts of the tree after quantization. 
 
     Note: If quantize_splits is set to "fixed" then input data is **not** quantized as well. Hence you have to manually scale the input data with quantize_factor to make sure splits are correctly applied.
@@ -25,7 +26,7 @@ def optimize(model, quantize_splits = None, quantize_leafs = None, quantize_fact
                 if n.prediction is not None:
                     n.prediction = [p*w for p in n.prediction]
 
-            h.optimize(["quantize"], {"quantize_splits":quantize_splits, "quantize_leafs":quantize_leafs, "quantize_factor":quantize_factor})
+            h.optimize(["quantize"], {"quantize_splits":quantize_splits, "quantize_leafs":quantize_leafs})
             model.weights[i] = 1.0
     
     return model

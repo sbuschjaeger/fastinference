@@ -42,8 +42,8 @@ def main():
         model = DecisionTreeClassifier(max_depth=args.maxdepth)
         base_optimizers = [
             ([None], [{}]),
-            (["quantize"],[{"quantize_splits":"rounding", "quantize_leafs":"fixed", "quantize_factor":1000}]),
-            (["quantize"],[{"quantize_leafs":"fixed", "quantize_factor":1000}]),
+            (["quantize"],[{"quantize_splits":"rounding", "quantize_leafs":1000}]),
+            (["quantize"],[{"quantize_leafs":1000, "quantize_splits":1000}]),
         ]
         ensemble_optimizers = [
             ([None], [{}])
@@ -56,7 +56,7 @@ def main():
 
         ensemble_optimizers = [
             ([None], [{}]),
-            (["quantize"],[{"quantize_splits":"rounding", "quantize_leafs":"fixed", "quantize_factor":10000}]),
+            (["quantize"],[{"quantize_splits":"rounding", "quantize_leafs":1000}]),
             (["leaf-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"adam", "verbose":True}]),
             (["weight-refinement"], [{"X":XTrain, "Y":YTrain, "epochs":1, "optimizer":"sgd", "verbose":True}])
         ]

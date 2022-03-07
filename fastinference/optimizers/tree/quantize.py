@@ -22,27 +22,25 @@ def get_leaf_probs(node):
             to_expand.append(n.rightChild)
     return np.array(leaf_probs).mean(axis=0).tolist()
 
-def optimize(model, quantize_splits = None, quantize_leafs = None, quantize_factor = 1000, **kwargs):
+def optimize(model, quantize_splits = None, quantize_leafs = None, **kwargs):
     """Quantizes the splits and predictions in the leaf nodes of the given tree and prunes away unreachable parts of the tree after quantization. 
 
-    Note: If quantize_splits is set to "fixed" then input data is **not** quantized as well. Hence you have to manually scale the input data with quantize_factor to make sure splits are correctly applied.
+    Note: The input data is **not** quantized as well if quantize_splits is set. Hence you have to manually scale the input data with the corresponding value to make sure splits are correctly performed.
 
     Args:
         model (Tree): The tree.
-        quantize_splits (str or None, optional): Can be ["rounding", "fixed"]. If "rounding" is set, then each split is rounded down towards the next integer. If "fixed" is set, then each split is scaled by quantize_factor and then rounded down to the next integer. If any other string or None is given nothing happens. Defaults to None.
-        quantize_leafs (str or None, optional): Can be ["fixed"]. If "fixed" is given then the probability estimates in the leaf nodes are scaled by quantize_factor and then rounded down. If any other string or None is given nothing happens. Defaults to None.
-        quantize_factor (int, optional): The quantization_factor. Defaults to 1000.
-
+        quantize_splits (str or None, optional): Can be "rounding" or an integer (either int or as string). If "rounding" is set, then each split is rounded down towards the next integer. In any other case, quantize_splits is interpreted as integer value that is used to scale each split before rounding it down towards the next integer. Defaults to None.
+        quantize_leafs (str or None, optional) : Can be a string or an integer. quantize_leafs is interpreted as integer value that is used to scale each leaf node before rounding it down towards the next integer. Defaults to None.
     Returns:
         Tree: The quantized and potentially pruned tree.
     """
-    if quantize_splits in ["rounding", "fixed"]:
+    if quantize_splits is not None:
         for n in model.nodes:
             if n.split is not None:
                 if quantize_splits == "rounding":
                     n.split = np.ceil(n.split).astype(int)
                 else:
-                    n.split = np.ceil(n.split * quantize_factor).astype(int)
+                    n.split = np.ceil(n.split * int(quantize_splits)).astype(int)
     
     # Prune the DT by removing sub-trees that are not accessible any more.
     fmin = [float('-inf') for _ in range(model.n_features)]
@@ -90,9 +88,9 @@ def optimize(model, quantize_splits = None, quantize_leafs = None, quantize_fact
 
     model.nodes = new_nodes
 
-    if quantize_leafs == "fixed":
+    if quantize_leafs is not None:
         for n in model.nodes:
             if n.prediction is not None:
-                n.prediction = np.ceil(np.array(n.prediction) * quantize_factor).astype(int).tolist()
+                n.prediction = np.ceil(np.array(n.prediction) * int(quantize_leafs)).astype(int).tolist()
 
     return model
