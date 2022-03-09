@@ -31,7 +31,7 @@ def main():
     XTrain, YTrain, _, _ = get_dataset(args.dataset,split=args.split)
 
     implementations = [ 
-        ("ifelse",{"label_type":"double"}), 
+        ("ifelse",{"label_type":"double", "feature_type":"double"}), 
         ("native",{"label_type":"double"})] + [
         ("ifelse",{"kernel_type":"path", "kernel_budget":b}) for b in [128]] + [
         ("ifelse",{"kernel_type":"node", "kernel_budget":b}) for b in [128]] + [

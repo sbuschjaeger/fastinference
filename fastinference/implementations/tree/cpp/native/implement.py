@@ -143,7 +143,7 @@ def get_nodes(model):
             to_expand.append( (cid, False, n.rightChild) )
     return inner_nodes, leaf_nodes
 
-def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", int_type = "unsigned int", output_debug = False, infer_types = True, reorder_nodes = False, set_size = 8, force_cacheline = False, **kwargs):
+def to_implementation(model, out_path, out_name, weight = 1, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", int_type = "unsigned int", output_debug = False, infer_types = True, reorder_nodes = False, set_size = 8, force_cacheline = False, **kwargs):
     """Generates a native C++ implementation of the given Tree model. Native means that the tree is represented in an array structure which is iterated via a while-loop. You can use this implementation by simply passing :code:`"cpp.native"` to the implement, e.g.
 
     .. code-block:: python

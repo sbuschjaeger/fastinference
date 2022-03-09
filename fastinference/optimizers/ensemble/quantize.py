@@ -27,7 +27,7 @@ def optimize(model, quantize_splits = None, quantize_leafs = None, **kwargs):
                     n.prediction = [p*w for p in n.prediction]
 
             h.optimize(["quantize"], {"quantize_splits":quantize_splits, "quantize_leafs":quantize_leafs})
-            model.weights[i] = 1.0
+            model.weights[i] = 1
     
     return model
             

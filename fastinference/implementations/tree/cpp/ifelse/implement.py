@@ -213,7 +213,7 @@ def node_sort(tree, budget, node_size):
 
     return kernel
 
-def to_implementation(model, out_path, out_name, weight = 1.0, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", kernel_budget = None, kernel_type = None, output_debug = False, target_compiler = "g++", target_objdump = "objdump",**kwargs):
+def to_implementation(model, out_path, out_name, weight = 1, namespace = "FAST_INFERENCE", feature_type = "double", label_type = "double", kernel_budget = None, kernel_type = None, output_debug = False, target_compiler = "g++", target_objdump = "objdump",**kwargs):
     """Generates a (unrolled) C++ implementation of the given Tree model. Unrolled means that the tree is represented in an if-then-else structure without any arrays. You can use this implementation by simply passing :code:`"cpp.ifelse"` to the implement, e.g.
 
     .. code-block:: python
