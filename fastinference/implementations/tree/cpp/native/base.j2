@@ -17,6 +17,7 @@ constexpr Node nodes[{{inner_nodes|length}}] = { {% for n in inner_nodes %}{ {{n
 
 void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }} * pred) {
     {{int_type}} i = 0;
+    {% if inner_nodes|length > 0%}
     while(true) {
         if (x[{{model.name}}::nodes[i].feature] <= {{model.name}}::nodes[i].split){
             if ({{model.name}}::nodes[i].left_is_leaf) {
@@ -34,6 +35,7 @@ void predict_{{model.name}}({{ feature_type }} const * const x, {{ label_type }}
             }
         }
     }
+    {%endif%}
 
     for (unsigned int j = 0; j < {{model.n_classes}}; ++j) {
         pred[j] += {% if weight != 1.0 %} {{model.name}}::predictions[i][j]*{{weight}}; {% else %} {{model.name}}::predictions[i][j]; {% endif %}
