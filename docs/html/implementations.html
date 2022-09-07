@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -78,15 +79,15 @@
            <div itemprop="articleBody">
              
   <section id="implementations">
-<h1>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline"></a></h1>
+<h1>Implementations<a class="headerlink" href="#implementations" title="Permalink to this heading"></a></h1>
 <section id="linear-implementations">
-<h2>Linear implementations<a class="headerlink" href="#linear-implementations" title="Permalink to this headline"></a></h2>
+<h2>Linear implementations<a class="headerlink" href="#linear-implementations" title="Permalink to this heading"></a></h2>
 </section>
 <section id="discriminant-analysis-implementations">
-<h2>Discriminant analysis implementations<a class="headerlink" href="#discriminant-analysis-implementations" title="Permalink to this headline"></a></h2>
+<h2>Discriminant analysis implementations<a class="headerlink" href="#discriminant-analysis-implementations" title="Permalink to this heading"></a></h2>
 </section>
 <section id="tree-implementations">
-<h2>Tree implementations<a class="headerlink" href="#tree-implementations" title="Permalink to this headline"></a></h2>
+<h2>Tree implementations<a class="headerlink" href="#tree-implementations" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="fastinference.implementations.tree.cpp.ifelse.implement.to_implementation">
 <span class="sig-prename descclassname"><span class="pre">fastinference.implementations.tree.cpp.ifelse.implement.</span></span><span class="sig-name descname"><span class="pre">to_implementation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'FAST_INFERENCE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_budget</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_compiler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'g++'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_objdump</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'objdump'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.implementations.tree.cpp.ifelse.implement.to_implementation" title="Permalink to this definition"></a></dt>
@@ -146,7 +147,7 @@
 
 </section>
 <section id="ensemble-implementations">
-<h2>Ensemble implementations<a class="headerlink" href="#ensemble-implementations" title="Permalink to this headline"></a></h2>
+<h2>Ensemble implementations<a class="headerlink" href="#ensemble-implementations" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="fastinference.implementations.ensemble.cpp.implement.to_implementation">
 <span class="sig-prename descclassname"><span class="pre">fastinference.implementations.ensemble.cpp.implement.</span></span><span class="sig-name descname"><span class="pre">to_implementation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'FAST_INFERENCE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.implementations.ensemble.cpp.implement.to_implementation" title="Permalink to this definition"></a></dt>
@@ -172,7 +173,7 @@
 
 </section>
 <section id="neural-network-implementations">
-<h2>Neural network implementations<a class="headerlink" href="#neural-network-implementations" title="Permalink to this headline"></a></h2>
+<h2>Neural network implementations<a class="headerlink" href="#neural-network-implementations" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="fastinference.implementations.neuralnet.cpp.NHWC.implement.to_implementation">
 <span class="sig-prename descclassname"><span class="pre">fastinference.implementations.neuralnet.cpp.NHWC.implement.</span></span><span class="sig-name descname"><span class="pre">to_implementation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">align</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'FAST_INFERENCE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">internal_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'double'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.implementations.neuralnet.cpp.NHWC.implement.to_implementation" title="Permalink to this definition"></a></dt>

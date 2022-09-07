@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -84,7 +85,7 @@
            <div itemprop="articleBody">
              
   <section id="neural-networks">
-<h1>Neural Networks<a class="headerlink" href="#neural-networks" title="Permalink to this headline"></a></h1>
+<h1>Neural Networks<a class="headerlink" href="#neural-networks" title="Permalink to this heading"></a></h1>
 <p>Fastinference offers a limited support for Deep Learning and Neural Network architectures. The current focus is on feed-forward MLPs and ConvNets in the context of small, embedded systems and FPGAs, but we are always open to enhance our support for new Deep Learning architectures.</p>
 <p><strong>Important:</strong> <a class="reference external" href="https://onnx.ai/">ONNX</a> is the open standard for machine learning interoperability and supported by all major Deep Learning frameworks. However, the ONNX format is still under development and a given deep architecture can often be represented with various computational graphs. Hence, this standard is sometimes ambiguous. This implementation has been tested with <a class="reference external" href="https://pytorch.org/">PyTorch</a> and visualized with <a class="reference external" href="https://netron.app/">Netron</a>. For exporting a Neural Net we usually use</p>
 <blockquote>
@@ -94,7 +95,7 @@
 </div>
 </div></blockquote>
 <section id="some-notes-on-binarized-neural-networks">
-<h2>Some notes on Binarized Neural Networks<a class="headerlink" href="#some-notes-on-binarized-neural-networks" title="Permalink to this headline"></a></h2>
+<h2>Some notes on Binarized Neural Networks<a class="headerlink" href="#some-notes-on-binarized-neural-networks" title="Permalink to this heading"></a></h2>
 <p>Binarized Neural Networks (BNNs) are Neural Networks with weights constraint to {-1,+1} so that the forward pass of the entire network can be executed via boolean operations (usually XNOR + popcount). A typical structure of these networks are as follows:</p>
 <blockquote>
 <div><p>Input -&gt; Linear / Conv -&gt; BatchNorm -&gt; Step -&gt; … -&gt; Linear / Conv -&gt; BatchNorm -&gt; Step -&gt; Output</p>
@@ -199,7 +200,7 @@
 </div></blockquote>
 </section>
 <section id="available-optimizations">
-<h2>Available optimizations<a class="headerlink" href="#available-optimizations" title="Permalink to this headline"></a></h2>
+<h2>Available optimizations<a class="headerlink" href="#available-optimizations" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="fastinference.optimizers.neuralnet.merge_nodes.optimize">
 <span class="sig-prename descclassname"><span class="pre">fastinference.optimizers.neuralnet.merge_nodes.</span></span><span class="sig-name descname"><span class="pre">optimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.optimizers.neuralnet.merge_nodes.optimize" title="Permalink to this definition"></a></dt>
@@ -237,7 +238,7 @@
 
 </section>
 <section id="module-fastinference.models.nn.NeuralNet">
-<span id="the-neuralnet-object"></span><h2>The NeuralNet object<a class="headerlink" href="#module-fastinference.models.nn.NeuralNet" title="Permalink to this headline"></a></h2>
+<span id="the-neuralnet-object"></span><h2>The NeuralNet object<a class="headerlink" href="#module-fastinference.models.nn.NeuralNet" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="fastinference.models.nn.NeuralNet.NeuralNet">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fastinference.models.nn.NeuralNet.</span></span><span class="sig-name descname"><span class="pre">NeuralNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_onnx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'model'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fastinference.models.nn.NeuralNet.NeuralNet" title="Permalink to this definition"></a></dt>
