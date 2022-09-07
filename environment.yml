@@ -1,7 +1,7 @@
 name: fi
 channels:
   - pytorch
-  # - conda-forge
+  - conda-forge
   - defaults
 dependencies:
   - cmake
@@ -9,10 +9,11 @@ dependencies:
   - jinja2
   - scikit-learn
   - numpy
-  - pytorch 
-  - torchvision 
-  - torchaudio 
+  - pytorch==1.9.1 
+  - torchvision==0.10.1 
+  - torchaudio==0.9.1
   - cudatoolkit=10.2
+  - pytorch-lightning=1.6.1
   - xgboost
   - pip
   - pip:

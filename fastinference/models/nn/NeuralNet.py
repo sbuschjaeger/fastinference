@@ -9,7 +9,8 @@ from math import ceil
 
 import numpy as np
 
-from onnx import helper, numpy_helper, utils, checker, load, shape_inference
+from onnx import helper, numpy_helper, utils, checker, load, shape_inference, version_converter
+from onnx.tools import update_model_dims
 
 from .Activations import Sigmoid, Relu, LeakyRelu, LogSoftmax, Step
 from .Conv2D import Conv2D
@@ -21,7 +22,6 @@ from .BatchNorm import BatchNorm
 from .Reshape import Reshape
 from ..Model import Model
 import fastinference.Util #import simplify_array, to_c_data_type, get_tensor_shape, get_initializer, get_attribute, get_constant
-
 def layer_from_node(graph, node, input_shape):
     """Constructs the appropriate layer from the given graph and node.
 
@@ -57,6 +57,8 @@ def layer_from_node(graph, node, input_shape):
     elif node.op_type == 'LogSoftmax':
         return LogSoftmax(graph, node, input_shape)
     elif node.op_type == 'Reshape':
+        return Reshape(graph, node, input_shape)
+    elif node.op_type == 'Flatten':
         return Reshape(graph, node, input_shape)
     else:
         raise NotImplementedError("Warning: Layer {} is currently not implemented".format(node.op_type))
@@ -99,13 +101,24 @@ class NeuralNet(Model):
         self.layers = []
 
         self.path_to_onnx = path_to_onnx
-        self.onnx_model = load(path_to_onnx)
-        checker.check_model(self.onnx_model)
+        try:
+            self.onnx_model = load(path_to_onnx)
+            checker.check_model(self.onnx_model)
+            #self.onnx_model = version_converter.convert_version(self.onnx_model, 11)
+            #checker.check_model(self.onnx_model)
+            #dynamic_axes={'input' : {0 : 'batch_size'},'output' : {0 : 'batch_size'}}
+        except Exception as e:
+            print("Exception during loading of the ONNX model {} occured.".format(path_to_onnx))
+            print(e)
+            raise e
+
         graph = shape_inference.infer_shapes(self.onnx_model).graph
 
         # Add implicit dimension for number of examples. We only consider single-example inference at the moment.
         input_shape = (1, graph.input[0].type.tensor_type.shape.dim[1].dim_value)
+        #input_shape = (1, 1, 28, 28)
         n_classes = graph.output[0].type.tensor_type.shape.dim[1].dim_value
+        #print(graph.input[0].type.tensor_type.shape)
 
         # Iterate all layers in the ONNX graph and generate code depending on the layer type
         #node_iterator = iter(enumerate(graph.node))
@@ -116,8 +129,8 @@ class NeuralNet(Model):
                 and graph.node[node_id + 2].op_type == "Constant" and graph.node[node_id + 3].op_type == "Constant" and graph.node[node_id + 4].op_type == "Where":
                 print("Merging Constant {} -> Greater {} -> Constant {} -> Constant {} -> Where {} into Step layer".format(node_id, node_id + 1, node_id + 2, node_id + 3, node_id + 4))
                 threshold = fastinference.Util.get_constant(node)
-                high = fastinference.Util.get_constant(graph.node[node_id + 2])
-                low = fastinference.Util.get_constant(graph.node[node_id + 3])
+                high = fastinference.Util.get_constant(graph.node[node_id + 2])[0]
+                low = fastinference.Util.get_constant(graph.node[node_id + 3])[0]
 
                 # [dim.dim_value for dim in graph.node[node_id + 1].type.tensor_type.shape.dim]
                 # graph.node[node_id + 1]
@@ -130,8 +143,8 @@ class NeuralNet(Model):
                 try:
                     layer = layer_from_node(graph, node, input_shape)
                 except Exception as e:
-                    print(e)
                     print("Exception for node {} of type {} occured.".format(node_id, node.op_type))
+                    print(e)
             
             self.layers.append(layer)
             print("input shape is {}".format(input_shape))

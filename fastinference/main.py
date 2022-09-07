@@ -117,4 +117,5 @@ if __name__ == '__main__':
     #sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//DT/DT.json', '--feature_type', 'double', '--out_path', '/tmp/fastinference//DT', '--out_name', 'model', '--implementation', 'cpp.native']
     #sys.argv = ['fastinference/main.py', '--model', '/tmp/fastinference//DT/DT.json', '--feature_type', 'double', '--out_path', '/tmp/fastinference//DT', '--out_name', 'model', '--implementation', 'cpp.ifelse', '--target_architecture', 'intel', '--kernel_budget', '128', '--kernel_type', 'path']
     #print(sys.argv)
+    # sys.argv = ['fastinference/main.py', "--model", "/tmp/fastinference/SimpleMLP/SimpleMLP.onnx", "--out_path", "/tmp/fastinference/debug",  "--implementation", "cpp.NHWC"]
     main()

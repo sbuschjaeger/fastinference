@@ -82,5 +82,4 @@ def get_attribute(node, name):
             return attribute
 
 def get_constant(node):
-    # TODO This is a weird call. Refactor this!
-    return np.array(numpy_helper.to_array(get_attribute(node, "value").t).item())
+    return numpy_helper.to_array(get_attribute(node, "value").t)

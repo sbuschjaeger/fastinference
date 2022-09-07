@@ -168,8 +168,8 @@ class SimpleCNN(pl.LightningModule):
         self.n_classes = n_classes
         
     def forward(self, x):
-        batch_size = x.shape[0]
-        x = x.view((batch_size, 1, 28, 28))
+        #batch_size = x.shape[0]
+        x = x.view((-1, 1, 28, 28))
 
         x = self.conv1(x)
         x = self.bn_1(x)
@@ -181,7 +181,9 @@ class SimpleCNN(pl.LightningModule):
         x = self.activation_2(x)
         x = self.pool_2(x)
 
-        x = x.view(batch_size, -1)
+        #x = x.view(batch_size, -1)
+        #x = torch.nn.functional.flatten(x)
+        x = torch.flatten(x, 1)
         x = self.fc_1(x)
         x = self.bn(x)
         x = self.activation(x)
@@ -214,6 +216,8 @@ class SimpleCNN(pl.LightningModule):
         return optimizer
 
     def predict(self, X):
+        # TODO implement this differently
+        #return np.ones(X.shape[0])
         return self.forward(torch.from_numpy(X).float()).argmax(axis=1)   
         
     def on_epoch_start(self):
@@ -231,6 +235,8 @@ class SimpleCNN(pl.LightningModule):
         self.eval()
 
     def store(self, out_path, accuracy, model_name):
+        #return os.path.join(out_path,model_name+".onnx")
+         
         dummy_x = torch.randn(1, self.input_dim, requires_grad=False)
 
         djson = {
@@ -246,7 +252,7 @@ class SimpleCNN(pl.LightningModule):
         model = sanatize_onnx(self)
         # https://github.com/pytorch/pytorch/issues/49229
         # set torch.onnx.TrainingMode.PRESERVE
-        torch.onnx.export(model, dummy_x,onnx_path, training=torch.onnx.TrainingMode.PRESERVE, export_params=True,opset_version=11, do_constant_folding=True, input_names = ['input'],  output_names = ['output'], dynamic_axes={'input' : {0 : 'batch_size'},'output' : {0 : 'batch_size'}})
+        torch.onnx.export(model, dummy_x,onnx_path, training=torch.onnx.TrainingMode.PRESERVE, export_params=True,opset_version=12, do_constant_folding=False, input_names = ['input'],  output_names = ['output'], dynamic_axes={'input' : {0 : 'batch_size'},'output' : {0 : 'batch_size'}})
         
         return onnx_path
 

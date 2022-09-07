@@ -182,6 +182,7 @@ def to_implementation(model, out_path, out_name, weight = 1, namespace = "FAST_I
     else:
         inner_nodes, leaf_nodes = get_nodes(model)
     
+    # TODO ADD another type here
     if infer_types:
         if len(inner_nodes) < 2**8:
             int_type = "unsigned char"

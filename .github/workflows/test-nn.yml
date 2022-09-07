@@ -7,7 +7,7 @@ on:
 jobs:
   test-nn:
     runs-on: ubuntu-latest
-    container: pytorchlightning/pytorch_lightning
+    container: pytorchlightning/pytorch_lightning:1.6.1-py3.9-torch1.9
     steps:
       - uses: actions/checkout@v2
       - name: Prepare

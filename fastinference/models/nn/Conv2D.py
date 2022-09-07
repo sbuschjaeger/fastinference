@@ -24,7 +24,7 @@ class Conv2D(Layer):
         pads (4): Padding for the beginning and ending along each spatial axis
     """
     def __init__(self, graph, node, input_shape):
-        assert len(input_shape) == 4
+        assert len(input_shape) == 4, "Unexpected input shape given. Expected 4 entries, but got: {}".format(input_shape)
         weight = fastinference.Util.get_initializer(graph, node.input[1])
         bias = fastinference.Util.get_initializer(graph, node.input[2])
         kernel_shape = weight.shape
