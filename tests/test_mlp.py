@@ -155,7 +155,16 @@ class SimpleMLP(pl.LightningModule):
         return optimizer
 
     def predict(self, X):
-        return self.forward(torch.from_numpy(X).float()).argmax(axis=1)   
+        tmp = TensorDataset(torch.Tensor(X)) 
+        loader = DataLoader(tmp, batch_size=32) 
+
+        all_preds = []
+        for bdata in loader:
+            x = bdata[0]
+            preds =  self.forward(x.float()).argmax(axis=1)   
+            all_preds.append(np.array(preds))
+
+        return np.concatenate(all_preds) 
 
     def on_epoch_start(self):
         print('\n')
