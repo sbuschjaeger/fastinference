@@ -3,6 +3,7 @@
 import itertools
 import sys
 import pandas as pd
+import numpy as np
 import os
 import argparse
 from sklearn.metrics import accuracy_score
